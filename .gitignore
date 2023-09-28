@@ -1,0 +1,7 @@
+build/*
+build
+.vscode
+node_modules
+package*.json
+tsconfig.json
+nodemon.json
