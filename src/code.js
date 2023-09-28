@@ -5,10 +5,19 @@ import { shadePolygon } from './polygon.js'
 const container = document.getElementById('container');
 const svg = document.getElementById('lines');
 let selectedBox = null;
+let selectedBoxDelete = null;
 let offsetX, offsetY;
 const boxes = [];
 let lines = [];
 const GRIDSPACING = 20
+
+// const boxes = document.querySelectorAll('.drag-box');
+const deletePopup = document.getElementById('deletePopup');
+const confirmDeleteButton = document.getElementById('confirmDelete');
+const cancelDeleteButton = document.getElementById('cancelDelete');
+// let selectedBox = null;
+let longPressTimer;
+
 
 // Create N draggable boxes
 const N = 5; // Change N to the desired number of boxes
@@ -48,7 +57,10 @@ boxes.forEach(box => {
     offsetX = e.clientX - boxRect.left;
     offsetY = e.clientY - boxRect.top;
     selectedBox.style.cursor = 'grabbing';
+    // to be able to  delete btn
+    
     });
+    box.addEventListener('mouseup', cancelLongPress);
 });
 
 //Document event listeners
@@ -81,10 +93,31 @@ container.addEventListener('mousedown', (e)=>{
         offsetX = e.clientX - boxRect.left;
         offsetY = e.clientY - boxRect.top;
         selectedBox.style.cursor = 'grabbing';
+        handleLongPress(e.target)
     }
 })
 
 
+// Event listeners for long-press and delete confirmation
+
+
+confirmDeleteButton.addEventListener('click', () => {
+    // Perform the deletion logic here
+    console.log(selectedBoxDelete)
+    if (selectedBoxDelete) {
+        // Remove the box from the 'boxes' list
+        const indexToRemove = boxes.indexOf(selectedBoxDelete);
+        if (indexToRemove !== -1) {
+        boxes.splice(indexToRemove, 1);
+        }
+        selectedBoxDelete.remove();
+      hideDeletePopup();
+    }
+  });
+  
+  cancelDeleteButton.addEventListener('click', () => {
+    hideDeletePopup();
+  });
 
 // // Add a click event listener to the SVG for adding boxes
 // svg.addEventListener('click', (e) => {
@@ -168,7 +201,7 @@ function redrawLines() {
     drawLines()
         
     const anglesInsideClosedArea = calculateAnglesForClosedArea(lines);
-    console.log('Angles inside closed area:', anglesInsideClosedArea);
+    // console.log('Angles inside closed area:', anglesInsideClosedArea);
 
 }
 
@@ -310,21 +343,28 @@ function getLineLength(line){
 }
   
 
-// function shadePolygon(lines, fillColor){
-//     // console.log(parseFloat(lines[0].getAttribute('x1')));
-//     const polygon = document.getElementById('polygon');
-//     // const polygonPoints = [];
-//     const polygonPoints = linesToPolygon(lines)
-//     const line = formatLine(lines[0])
-//     // may need to close the points here
-//     polygonPoints.push(`${line.x1}, ${line.y1}`);
 
-//     // Create a polygon element and set its attributes
-//     const polygonElement = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-//     polygonElement.setAttribute('points', polygonPoints.join(' '));
-//     polygonElement.setAttribute('fill', fillColor); // Set the fill color
+// Function to show the delete popup
+function showDeletePopup() {
+  deletePopup.style.display = 'block';
+}
 
-//     // Append the polygon to the SVG
-//     polygon.appendChild(polygonElement); 
+// Function to hide the delete popup
+function hideDeletePopup() {
+  deletePopup.style.display = 'none';
+}
 
-// }
+// Function to handle the long-press event
+function handleLongPress(box) {
+    
+    selectedBoxDelete = box;
+    console.log(selectedBoxDelete)
+    longPressTimer = setTimeout(showDeletePopup, 500); // Adjust the long-press duration as needed
+}
+
+// Function to cancel the long-press event
+function cancelLongPress() {
+  clearTimeout(longPressTimer);
+  selectedBoxDelete = null;
+}
+
