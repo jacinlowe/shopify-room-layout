@@ -1,28 +1,30 @@
-import { createGrid,snapToGrid } from './grid.js';
+import { createGrid,scaleGrid,snapToGrid } from './grid.js';
 import { calculateAnglesForClosedArea,linesToPolygon, formatLine } from './lines.js';
 import { shadePolygon } from './polygon.js'
 
 const container = document.getElementById('container');
+const rootContainer = document.getElementById('rootContainer');
 const svg = document.getElementById('lines');
+const hoverInfoContainer = document.getElementById('hoverInfoContainer');
+
+const GRID_SPACING = 20
+const POLYGON_FILL_COLOR = 'blue'; // Replace with the desired fill color
+const DELETE_BUTTON_OFFSET = {x:60,y:-20}
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 3.0;
+const SCALE_INCREMENT = 0.1;
+
+let currentScale = 1.0;
 let selectedBox = null;
-let selectedBoxDelete = null;
 let offsetX, offsetY;
+
 const boxes = [];
 let lines = [];
-const GRIDSPACING = 20
-
-// const boxes = document.querySelectorAll('.drag-box');
-const deletePopup = document.getElementById('deletePopup');
-const confirmDeleteButton = document.getElementById('confirmDelete');
-const cancelDeleteButton = document.getElementById('cancelDelete');
-// let selectedBox = null;
-let longPressTimer;
 
 
 // Create N draggable boxes
 const N = 5; // Change N to the desired number of boxes
 let latestBoxId = N;
-const POLYGON_FILL_COLOR = 'blue'; // Replace with the desired fill color
 
 const boxSize = 50; // Adjust the box size as needed
 for (let i = 1; i <= N; i++) {
@@ -60,7 +62,9 @@ boxes.forEach(box => {
     // to be able to  delete btn
     
     });
-    box.addEventListener('mouseup', cancelLongPress);
+    box.addEventListener('mouseenter', () => showHoverInfo(box))
+    box.addEventListener('mouseleave', () => delayHideHoverInfo())
+    // box.addEventListener('mouseup', cancelLongPress);
 });
 
 //Document event listeners
@@ -72,10 +76,11 @@ document.addEventListener('mousemove', (e) => {
 
     selectedBox.style.left = x + 'px';
     selectedBox.style.top = y + 'px';
-    snapToGrid(selectedBox, GRIDSPACING)
+    snapToGrid(selectedBox, GRID_SPACING)
 
     // Redraw lines
     redrawLines();
+    updateDeleteButtonPosition(selectedBox);
 });
 
 document.addEventListener('mouseup', () => {
@@ -93,46 +98,50 @@ container.addEventListener('mousedown', (e)=>{
         offsetX = e.clientX - boxRect.left;
         offsetY = e.clientY - boxRect.top;
         selectedBox.style.cursor = 'grabbing';
-        handleLongPress(e.target)
+        // handleLongP/ress(e.target)
     }
 })
+// rootContainer.addEventListener('wheel',() => console.log('scrolling'))
+
+rootContainer.addEventListener('wheel', (e) => handleZoom(e));
 
 
 // Event listeners for long-press and delete confirmation
 
 
-confirmDeleteButton.addEventListener('click', () => {
-    // Perform the deletion logic here
-    console.log(selectedBoxDelete)
-    if (selectedBoxDelete) {
-        // Remove the box from the 'boxes' list
-        const indexToRemove = boxes.indexOf(selectedBoxDelete);
-        if (indexToRemove !== -1) {
-        boxes.splice(indexToRemove, 1);
-        }
-        selectedBoxDelete.remove();
-      hideDeletePopup();
-    }
-  });
-  
-  cancelDeleteButton.addEventListener('click', () => {
-    hideDeletePopup();
-  });
-
-// // Add a click event listener to the SVG for adding boxes
-// svg.addEventListener('click', (e) => {
-//     console.log(e.target)
-//     if (e.target.tagName === 'svg'){
-//         console.log('clicked line')
-//         const lineIndex = lines.indexOf(e.target);
-//         if (lineIndex >= 0){
-//             const startBox = boxes[lineIndex];
-//             const endBox = boxes[(lineIndex + 1) % boxes.length] //wrap around if box is at the end
-//             addBoxBetweenBoxes(startBox,endBox)
+// confirmDeleteButton.addEventListener('click', () => {
+//     // Perform the deletion logic here
+//     console.log(selectedBoxDelete)
+//     if (selectedBoxDelete) {
+//         // Remove the box from the 'boxes' list
+//         const indexToRemove = boxes.indexOf(selectedBoxDelete);
+//         if (indexToRemove !== -1) {
+//         boxes.splice(indexToRemove, 1);
 //         }
+//         selectedBoxDelete.remove();
+//       hideDeletePopup();
 //     }
-        
 //   });
+  
+//   cancelDeleteButton.addEventListener('click', () => {
+//     hideDeletePopup();
+//   });
+
+
+function handleZoom(event){
+    event.preventDefault();
+
+    //calculate the scale factor based on the scroll direction
+    currentScale += event.deltaY * -0.01 * SCALE_INCREMENT;
+    //Clamp the scale factor within the defined bounds
+    currentScale = Math.min(MAX_SCALE,Math.max(MIN_SCALE,currentScale))
+    console.log(currentScale)
+    // Apply the scale transform to the container and its contents
+    container.style.transform = `scale(${currentScale})`;
+    // update the position of lines boxes,and polygons here.
+    scaleGrid(GRID_SPACING,currentScale)
+    redrawLines()
+}
 
 // Helper function to get the center coordinates of a box
 function getBoxCenter(box) {
@@ -158,18 +167,6 @@ function drawLines(){
         svg.appendChild(line);
         createTextOnLine(line,index+1)
     })
-    // for (let i = 0; i < boxes.length - 1; i++) {
-    //     const startBox = boxes[i];
-    //     const endBox = boxes[i + 1];
-    //     }
-    
-    // // Connect the last box to the first box to form a polygon
-    // const startBox = boxes[boxes.length - 1];
-    // const endBox = boxes[0];
-    // const line = createLine(startBox,endBox)
-    // lines.push(line);
-    // svg.appendChild(line)
-    // createTextOnLine(line,boxes.length)
 
     // Add a click event listener to each line for adding a box between boxes
     lines.forEach((line) => {
@@ -262,20 +259,6 @@ function createTextOnLine(line,lineIndex){
     text.textContent = getLineLength(line);
     document.getElementById('lines').appendChild(text)
 }
-// // Function to add a box at a specific point
-// function addBoxAtPoint(x, y) {
-//     latestBoxId++;
-//     const box = document.createElement('div');
-//     box.className = 'drag-box';
-//     box.id = `box${latestBoxId}`;
-//     box.textContent = `Box ${latestBoxId}`;
-//     box.style.width = boxSize + 'px';
-//     box.style.height = boxSize + 'px';
-//     box.style.left = x - boxSize / 2 + 'px';
-//     box.style.top = y - boxSize / 2 + 'px';
-//     container.appendChild(box);
-//     boxes.push(box);
-//   }
 
   // Function to add a box between two existing boxes connected by a line
 function addBoxBetweenBoxes(startBox, endBox) {
@@ -298,18 +281,25 @@ function addBoxBetweenBoxes(startBox, endBox) {
     newBox.style.height = boxSize + 'px';
     newBox.style.left = x - boxSize / 2 + 'px';
     newBox.style.top = y - boxSize / 2 + 'px';
+    
+    newBox.addEventListener('mouseenter', () => showHoverInfo(newBox))
+    newBox.addEventListener('mouseleave', () => delayHideHoverInfo())
 
     startBox.parentElement.insertBefore(newBox,endBox.nextSibling)
     boxes.splice(endIndex,0,newBox)
     // update the box text
-    boxes.forEach((box,index) => {
-        box.textContent = `Box: ${index+1}`
-    })
-  
+    updateBoxText()
     // Redraw lines to include the new box
     redrawLines();
   }
 
+function updateBoxText(){
+    // update the box text
+    boxes.forEach((box,index) => {
+        box.textContent = `Box: ${index+1}`
+    })
+      
+}
 // Function to calculate the length of a line segment
 function calculateLineLength(x1, y1, x2, y2) {
     const deltaX = x2 - x1;
@@ -332,7 +322,7 @@ function getLineLength(line){
     const lengthInPixels = calculateLineLength(x1, y1, x2, y2);
     
     // Convert length from pixels to feet and inches (adjust the conversion factor as needed)
-    const pixelsToFeet = 1 / 100; // Adjust this factor to match your scale
+    const pixelsToFeet = 1 / 10; // Adjust this factor to match your scale
     const lengthInFeet = lengthInPixels * pixelsToFeet;
     const lengthFeet = Math.floor(lengthInFeet);
     const lengthInches = Math.round((lengthInFeet - lengthFeet) * 12);
@@ -341,30 +331,81 @@ function getLineLength(line){
     const formattedLength = formatLength(lengthFeet, lengthInches);
     return formattedLength
 }
+
+
+// Function to create and display the hover info near a box
+function showHoverInfo(box) {
+    const hoverInfo = document.createElement('div');
+    hoverInfo.className = 'delete-button';
+    hoverInfo.textContent = 'X';
+  
+    // Calculate the position of the hover info near the box
+    const boxRect = box.getBoundingClientRect();
+    const xOffset = DELETE_BUTTON_OFFSET.x; // Adjust the horizontal offset
+    const yOffset = DELETE_BUTTON_OFFSET.y; // Adjust the vertical offset
+  
+    hoverInfo.style.left = boxRect.left + xOffset + 'px';
+    hoverInfo.style.top = boxRect.top + yOffset + 'px';
+    
+    //Add the event listner to delete the box
+    hoverInfo.addEventListener('click', () => handleDeleteBox(box))
+
+
+    while (hoverInfoContainer.firstChild){
+        hoverInfoContainer.removeChild(hoverInfoContainer.firstChild);
+    }
+    
+    // Append the hover info to the container and fade it in
+    hoverInfoContainer.appendChild(hoverInfo);
+    hoverInfo.style.opacity = '0';
+    hoverInfo.style.transition = 'opacity 0.3s ease-in-out';
+    setTimeout(() => {
+      hoverInfo.style.opacity = '1';
+    }, 10); // Delay for smoother fade-in
+  }
   
 
+  function delayHideHoverInfo(){
+    setTimeout(hideHoverInfo,500)
+  }
 
-// Function to show the delete popup
-function showDeletePopup() {
-  deletePopup.style.display = 'block';
-}
-
-// Function to hide the delete popup
-function hideDeletePopup() {
-  deletePopup.style.display = 'none';
-}
-
-// Function to handle the long-press event
-function handleLongPress(box) {
+  // Function to hide the hover info when leaving a box
+  function hideHoverInfo() {
+    const hoverInfo = document.querySelector('.delete-button');
     
-    selectedBoxDelete = box;
-    console.log(selectedBoxDelete)
-    longPressTimer = setTimeout(showDeletePopup, 500); // Adjust the long-press duration as needed
-}
+    if (hoverInfo) {
+      hoverInfo.style.opacity = '0';
+      setTimeout(() => {
+        hoverInfo.remove();
+      }, 750); // Delay for smoother fade-out
+    }
+  }
 
-// Function to cancel the long-press event
-function cancelLongPress() {
-  clearTimeout(longPressTimer);
-  selectedBoxDelete = null;
-}
+  // Function to update the position of the delete button when a box is moved
+function updateDeleteButtonPosition(box) {
+    const deleteButton = box.querySelector('.delete-button');
+    if (deleteButton) {
+      const boxRect = box.getBoundingClientRect();
+    //   deleteButton.style.left = boxRect.width - 10 + 'px'; // Adjust the horizontal position
+      const xOffset = DELETE_BUTTON_OFFSET.x; // Adjust the horizontal offset
+      const yOffset = DELETE_BUTTON_OFFSET.y; // Adjust the vertical offset
+    
+      deleteButton.style.left = boxRect.left + xOffset + 'px';
+      deleteButton.style.top = boxRect.top + yOffset + 'px';
+    }
+  }
+
+  function handleDeleteBox(box){
+    deleteBox(box);
+    updateBoxText();
+    redrawLines();
+  }
+
+  function deleteBox(box) {
+    const boxIndex = boxes.indexOf(box)
+    if (boxIndex != -1){
+        boxes.splice(boxIndex,1)
+        box.remove()
+    }
+  }
 
