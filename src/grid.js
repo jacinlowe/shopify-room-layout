@@ -35,3 +35,14 @@ export function snapToGrid(box, spacing) {
     box.style.left = snappedX + 'px';
     box.style.top = snappedY + 'px';
   }
+  
+export function scaleGrid(spacing,currentScale){
+  const gridDots = document.querySelectorAll('.grid-dot');
+  const scaledGridSpacing = spacing * currentScale;
+  console.log("scalegrid",scaledGridSpacing)
+  // Update the size and spacing of the grid dots
+  gridDots.forEach((dot) => {
+    dot.setAttribute('r', scaledGridSpacing / 2)
+  });
+
+}
