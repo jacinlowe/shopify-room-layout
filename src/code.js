@@ -6,6 +6,8 @@ const container = document.getElementById('container');
 const rootContainer = document.getElementById('rootContainer');
 const svg = document.getElementById('lines');
 const hoverInfoContainer = document.getElementById('hoverInfoContainer');
+const summaryTable = document.getElementById('summaryTable');
+const rows = document.querySelectorAll('#summaryTable tr');
 
 const GRID_SPACING = 20
 const POLYGON_FILL_COLOR = 'blue'; // Replace with the desired fill color
@@ -21,6 +23,41 @@ let offsetX, offsetY;
 const boxes = [];
 let lines = [];
 
+
+rows.forEach(row => {
+
+  row.addEventListener('click', () => {
+    
+    // Get current corner type text
+    const cornerTypeCell = row.querySelector('td:last-child');
+    const currentType = cornerTypeCell.textContent;
+
+    // Create and show dropdown with current selected
+    const select = document.createElement('select');
+    select.value = currentType;
+
+    const insideOption = document.createElement('option');
+    insideOption.value = 'Inside';
+    insideOption.text = 'Inside';
+
+    const outsideOption = document.createElement('option');
+    outsideOption.value = 'Outside';  
+    outsideOption.text = 'Outside';
+
+    select.append(insideOption, outsideOption);
+
+    cornerTypeCell.textContent = ''; 
+    cornerTypeCell.append(select);
+
+    // Hide on change
+    select.addEventListener('change', () => {
+      cornerTypeCell.textContent = select.value;
+      select.remove(); 
+    });
+
+  });
+
+}); 
 
 // Create N draggable boxes
 const N = 5; // Change N to the desired number of boxes
@@ -141,6 +178,12 @@ function handleZoom(event){
     // update the position of lines boxes,and polygons here.
     scaleGrid(GRID_SPACING,currentScale)
     redrawLines()
+    // lines.forEach((line) =>{
+    //   const originalLength = line.getAttribute('data-original-length');
+    //   const scaledLength = originalLength * currentScale;
+    //   line.setAttribute('x2',scaledLength)
+    //   line.setAttribute('y2',scaledLength)
+    // })
 }
 
 // Helper function to get the center coordinates of a box
@@ -152,7 +195,7 @@ function getBoxCenter(box) {
     };
 }
 
-function drawLines(){
+export function drawLines(){
     
     while (svg.firstChild){
         svg.removeChild(svg.firstChild);
@@ -183,7 +226,7 @@ function drawLines(){
         });})
         // svg.appendChild(line);
     shadePolygon(lines.map((line) => formatLine(line)),POLYGON_FILL_COLOR)
-
+    return false
     }
 
 // Initialize lines between the boxes
@@ -221,13 +264,15 @@ function spreadBoxes() {
 function createLine(startBox, endBox,index){
     const startCenter = getBoxCenter(startBox);
     const endCenter = getBoxCenter(endBox);
-    
+    const originalLength = calculateLineLength(startCenter.x,startCenter.y, endCenter.x, endCenter.y);
+
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', startCenter.x + 'px');
     line.setAttribute('y1', startCenter.y + 'px');
     line.setAttribute('x2', endCenter.x + 'px');
     line.setAttribute('y2', endCenter.y + 'px');
     line.setAttribute('stroke', 'red'); // Set the stroke color to red
+    line.setAttribute('data-original-length', originalLength); // Set the stroke color to red
     
     line.setAttribute('data-index', index)
     line.classList.add('clickable-line')
@@ -409,3 +454,25 @@ function updateDeleteButtonPosition(box) {
     }
   }
 
+function appendSummaryRow(wallNum, length) {
+
+  const table = summaryTable
+
+  const row = document.createElement('tr');
+
+  const wallNumCell = document.createElement('td');
+  wallNumCell.textContent = wallNum;
+
+  const lengthCell = document.createElement('td');
+  lengthCell.textContent = length; 
+
+  const typeCell = document.createElement('td');
+  typeCell.textContent = cornerType;
+
+  row.appendChild(wallNumCell);
+  row.appendChild(lengthCell);
+  row.appendChild(typeCell);
+
+  table.appendChild(row);
+
+}

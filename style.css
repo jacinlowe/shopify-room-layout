@@ -113,3 +113,31 @@ body {
  /* top: -10px;
  right: -10px; */
 }
+.summaryTable{
+  position: absolute; 
+  bottom: 50px; 
+  left: 50px;
+  border: 1px solid black;
+  border-radius: 3px;
+  padding: 20px;
+  margin: 60px 10px;
+  z-index: 102;
+  
+  /* width: calc(100% - 40px);
+  height: calc(100% - 40px); */
+}
+.summaryTable th{
+text-align: start;
+}
+.summaryTable tr{
+  text-align: justify;
+  
+}
+
+
+@media (max-width: 600px) {
+  .summaryTable{
+    bottom: 10px;
+    left:10px;
+  }
+}
