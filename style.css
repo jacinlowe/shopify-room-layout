@@ -110,17 +110,25 @@ body {
  cursor:pointer;
  position:absolute;
  z-index: 100;
- /* top: -10px;
- right: -10px; */
+ width:20px;
+ height:20px;
+ text-align: center;
+ top: -10px;
+ right: -10px;
 }
-.summaryTable{
+
+.transition{
+  transition: opacity 0.3s ease-in-out;
+}
+
+.summaryBox{
   position: absolute; 
   bottom: 50px; 
   left: 50px;
-  border: 1px solid black;
-  border-radius: 3px;
-  padding: 20px;
-  margin: 60px 10px;
+  /* border: 1px solid black;
+  border-radius: 3px; */
+  /* padding: 20px; */
+  /* margin: 60px 10px; */
   z-index: 102;
   
   /* width: calc(100% - 40px);
@@ -130,13 +138,54 @@ body {
 text-align: start;
 }
 .summaryTable tr{
-  text-align: justify;
+  text-align: center;
   
+}
+table.summaryTable {
+  font-family: Georgia, serif;
+  border: 2px solid #1B1B1B;
+  background-color: #C3C3C3;
+  width: 350px;
+  height: 200px;
+  text-align: center;
+  border-collapse: collapse;
+}
+table.summaryTable td, table.summaryTable th {
+  border: 0px solid #FFFFFF;
+  padding: 3px 2px;
+}
+table.summaryTable tbody td {
+  font-size: 13px;
+  font-weight: bold;
+}
+table.summaryTable tr:nth-child(even) {
+  background: #8da1b2;
+}
+table.summaryTable thead {
+  background: #0B6FA4;
+}
+table.summaryTable thead th {
+  font-size: 17px;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: center;
+}
+table.summaryTable tfoot {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333333;
+  background: #D0E4F5;
+  border-top: 3px solid #444444;
+}
+table.summaryTable tfoot td {
+  font-size: 14px;
 }
 
 
+
+
 @media (max-width: 600px) {
-  .summaryTable{
+  .summaryBox{
     bottom: 10px;
     left:10px;
   }

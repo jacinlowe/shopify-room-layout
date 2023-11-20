@@ -1,4 +1,9 @@
 // Function to create and shade the polygon
+/**
+ * 
+ * @param {[Line]} lines 
+ * @param {String} fillColor 
+ */
 export function shadePolygon(lines, fillColor) {
     const polygon = document.getElementById('polygon'); // Get the SVG element
     const polygonPoints = [];
