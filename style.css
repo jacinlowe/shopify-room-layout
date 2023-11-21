@@ -81,7 +81,7 @@ body {
   .grid-dot{
     fill: black;
     opacity: 0.2;
-    r:2px; /*radius */
+    /* r:2px; radius */
   }
 
 .polygon{
@@ -179,6 +179,15 @@ table.summaryTable tfoot {
 }
 table.summaryTable tfoot td {
   font-size: 14px;
+}
+
+.angleCanvas {
+  position: absolute;
+  /* width: 100px; Set the width of the indicator */
+  /* height: 2px; Set the height of the indicator */
+  /* background-color: red; */
+  /* transform-origin: 0% 50%; */
+  z-index: 1;
 }
 
 

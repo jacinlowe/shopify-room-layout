@@ -17,6 +17,7 @@ export class Boxes{
     removeBox(box){
         this.boxes.splice(this.boxes.indexOf(box), 1)
         this.container.removeChild(box.getElement())
+        box = null;
     }
     clearBoxes(){
         this.boxes = []
@@ -35,7 +36,15 @@ export class Boxes{
             box.element.style.top = y + 'px';
         })
     }
+    updateBoxText(){
+        // update the box text
+        this.boxes.forEach((box,index) => {
+            box.updateText(index+1);
+        })
+    }
 }
+
+
 
 export class Box{
     constructor(id,size=50){
@@ -53,10 +62,34 @@ export class Box{
     getElement(){
         return this.element
     };
-
+    positionBox(x,y){
+        this.element.style.left = x - this.size / 2 + 'px';
+        this.element.style.top = y - this.size / 2 + 'px';
+    }
     
+    getPosition(){
+        return getBoxCenter(this)
+    }
+
+    updateText(id){
+        this.element.textContent = `Box ${id}`;
+    }
 
 }
+
+/**
+ *  Helper function to get the center coordinates of a box
+ * @param {Box} box 
+ * @returns {{x:Number,y:Number}}
+ */
+export function getBoxCenter(box) {
+    const rect = box.getElement().getBoundingClientRect();
+    return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+    };
+}
+
 
 class HoverInfo{
     /**

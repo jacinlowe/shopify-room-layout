@@ -1,5 +1,5 @@
-import { createGrid,scaleGrid,snapToGrid } from './grid.js';
-import { calculateAnglesForClosedArea,linesToPolygon, formatLine, Line,Lines } from './lines.js';
+import { Grid } from './grid.js';
+import { Line, Lines, calculateArcAngles } from './lines.js';
 import { shadePolygon } from './polygon.js'
 import { SummaryTable } from './summaryBox.js';
 import { Boxes,Box } from './boxes.js';
@@ -8,6 +8,7 @@ const container = document.getElementById('container');
 const rootContainer = document.getElementById('rootContainer');
 const svg = document.getElementById('lines');
 const hoverInfoContainer = document.getElementById('hoverInfoContainer');
+const angleIndicators = document.getElementById('angleIndicators');
 const rows = document.querySelectorAll('#summaryTable tr');
 
 const GRID_SPACING = 20
@@ -23,6 +24,7 @@ let offsetX, offsetY;
 
 const boxes = new Boxes(container);
 let lines = new Lines();
+const grid = new Grid(GRID_SPACING);
 
 
 rows.forEach(row => {
@@ -94,7 +96,7 @@ boxes.spreadBoxes();
 // Initialize lines between the boxes
 initializeLines();
 
-createGrid(20);
+grid.drawGrid();
 const summaryTable = new SummaryTable('summaryTable')
 summaryTable.initializeRows(lines.lines)
 
@@ -113,6 +115,7 @@ boxes.boxes.forEach(box => {
     // to be able to  delete btn
     
     });
+    // HOVER INFO for BOXES
     boxElem.addEventListener('mouseenter', () => showHoverInfo(box))
     boxElem.addEventListener('mouseleave', () => delayHideHoverInfo())
     // box.addEventListener('mouseup', cancelLongPress);
@@ -127,7 +130,7 @@ document.addEventListener('mousemove', (e) => {
 
     selectedBox.style.left = x + 'px';
     selectedBox.style.top = y + 'px';
-    snapToGrid(selectedBox, GRID_SPACING)
+    grid.snapToGrid(selectedBox)
 
     // Redraw lines
     redrawLines();
@@ -154,7 +157,7 @@ container.addEventListener('mousedown', (e)=>{
 })
 // rootContainer.addEventListener('wheel',() => console.log('scrolling'))
 
-rootContainer.addEventListener('wheel', (e) => handleZoom(e));
+rootContainer.addEventListener('wheel', (e) =>  handleZoom(e));
 
 
 // Event listeners for long-press and delete confirmation
@@ -190,7 +193,7 @@ function handleZoom(event){
     // Apply the scale transform to the container and its contents
     container.style.transform = `scale(${currentScale})`;
     // update the position of lines boxes,and polygons here.
-    scaleGrid(GRID_SPACING,currentScale)
+    grid.scaleGrid(currentScale)
     redrawLines()
     // lines.forEach((line) =>{
     //   const originalLength = line.getAttribute('data-original-length');
@@ -200,14 +203,6 @@ function handleZoom(event){
     // })
 }
 
-// Helper function to get the center coordinates of a box
-function getBoxCenter(box) {
-    const rect = box.getBoundingClientRect();
-    return {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2,
-    };
-}
 
 export function drawLines(){
     
@@ -244,11 +239,85 @@ export function drawLines(){
             createTextOnLine(line,lineIndex)
         });})
         // svg.appendChild(line);
+    drawAngles(lines.lines)
     shadePolygon(lines.lines,POLYGON_FILL_COLOR)
     return false
     }
 
 
+
+/**
+ * 
+ * @param {[Line]} lines 
+ */
+function drawAngles(lines){
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const angleArray = [];
+
+  // boxes.boxes.forEach((box,index,boxArray) => {
+  //   const nextBox = boxArray[(index + 1) %boxArray.length];
+  //   const thirdBox = boxArray[(index + 2) %boxArray.length];
+  //   drawArcBetweenPoints(ctx,box,nextBox,thirdBox)
+  // })
+
+  lines.forEach((line,index,lineArray) => {
+    const nextLine = lineArray[(index + 1) %lineArray.length];
+    
+    // const angle = line.calculateAngle(nextLine);
+    const centerX = nextLine.x2;
+    const centerY = nextLine.y2;
+    const {startAngle,endAngle} = calculateArcAngles(centerX,centerY,line,nextLine)
+    angleArray.push({startAngle,endAngle});
+
+    drawArc(ctx,centerX,centerY,startAngle,endAngle)
+  })
+  
+  // console.log(`angle between lines: ${angleArray} degrees`);
+  // console.table(angleArray);
+
+  const line1 = lines[0];
+  const line2 = lines[1];
+  const line3 = lines[2];
+  // const angle = calculateInteriorAngle(line1,line2,line3)
+  
+  // // draw angle arc
+  // const radius = 50
+  // const centerX = line1.x2;
+  // const centerY = line1.y2;
+
+  // ctx.beginPath();
+
+  // ctx.arc(centerX,centerY,radius,Math.PI, endAngle)
+  // ctx.strokeStyle = 'red';
+  // ctx.stroke();
+}
+
+function drawArcBetweenPoints(ctx,box1,box2,box3,radius=60){
+  const box1Pos = box1.getPosition();
+  const box2Pos = box2.getPosition();
+  const box3Pos = box3.getPosition();
+  ctx.beginPath();
+  ctx.strokeStyle = 'red'
+  ctx.lineWidth = 5;
+  ctx.arcTo(box1Pos.x,box1Pos.y,box2Pos.x,box2Pos.y,radius);
+  ctx.arcTo(box2Pos.x,box2Pos.y,box3Pos.x,box3Pos.y,radius);
+  ctx.stroke();
+}
+
+function drawArc(ctx,x,y,startAngle,endAngle,radius=40){
+  // draw angle arc
+  const centerX = x;
+  const centerY = y;
+
+  ctx.beginPath();
+  ctx.arc(centerX,centerY,radius, startAngle, endAngle)
+  ctx.strokeStyle = 'red';
+  ctx.stroke();
+}
 
 // Initialize lines between the boxes
 function initializeLines() {
@@ -262,8 +331,8 @@ function redrawLines() {
     summaryTable.refreshRows(lines.lines)
 
         
-    const anglesInsideClosedArea = calculateAnglesForClosedArea(lines.lines);
-    console.log('Angles inside closed area:', anglesInsideClosedArea);
+    // const anglesInsideClosedArea = calculateAnglesForClosedArea(lines.lines);
+    // console.log('Angles inside closed area:', anglesInsideClosedArea);
 
 
 }
@@ -322,45 +391,32 @@ function createTextOnLine(line,lineIndex){
   // Function to add a box between two existing boxes connected by a line
 function addBoxBetweenBoxes(startBox, endBox) {
 
-    const endIndex = boxes.indexOf(endBox);
+    const endIndex = boxes.boxes.indexOf(endBox);
     if (endIndex === -1){
         console.error("End box not found in boxes array.");
         return
     }
-    const box1Rect = startBox.getBoundingClientRect();
-    const box2Rect = endBox.getBoundingClientRect();
+    const box1Rect = startBox.element.getBoundingClientRect();
+    const box2Rect = endBox.element.getBoundingClientRect();
   
     const x = (box1Rect.left + box2Rect.left) / 2;
     const y = (box1Rect.top + box2Rect.top) / 2;
   
-    const newBox = document.createElement('div');
-    newBox.className = 'drag-box';
-    newBox.textContent = `New Box`;
-    newBox.style.width = boxSize + 'px';
-    newBox.style.height = boxSize + 'px';
-    newBox.style.left = x - boxSize / 2 + 'px';
-    newBox.style.top = y - boxSize / 2 + 'px';
-    
-    newBox.addEventListener('mouseenter', () => showHoverInfo(newBox))
-    newBox.addEventListener('mouseleave', () => delayHideHoverInfo())
+    const newBox = new Box(endIndex-1);
+    newBox.positionBox(x,y);
+    newBox.element.addEventListener('mouseenter', () => showHoverInfo(newBox))
+    newBox.element.addEventListener('mouseleave', () => delayHideHoverInfo())
 
-    startBox.parentElement.insertBefore(newBox,endBox.nextSibling)
-    boxes.splice(endIndex,0,newBox)
+    startBox.element.parentElement.insertBefore(newBox.element,endBox.element.nextSibling)
+    boxes.boxes.splice(endIndex,0,newBox)
     // update the box text
-    updateBoxText()
+    boxes.updateBoxText()
     // Redraw lines to include the new box
     redrawLines();
     summaryTable.refreshRows(lines.lines)
     
   }
 
-function updateBoxText(){
-    // update the box text
-    boxes.forEach((box,index) => {
-        box.textContent = `Box: ${index+1}`
-    })
-      
-}
 // Function to calculate the length of a line segment
 function calculateLineLength(x1, y1, x2, y2) {
     const deltaX = x2 - x1;
@@ -444,17 +500,12 @@ function updateDeleteButtonPosition(boxElement) {
   }
 
   function handleDeleteBox(box){
-    deleteBox(box);
-    updateBoxText();
+    boxes.removeBox(box);
+    boxes.updateBoxText();
     redrawLines();
     summaryTable.refreshRows(lines.lines)
   }
 
-  function deleteBox(box) {
-    const boxIndex = boxes.indexOf(box)
-    if (boxIndex != -1){
-        boxes.splice(boxIndex,1)
-        box.remove()
-    }
-  }
+
+
 

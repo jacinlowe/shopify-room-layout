@@ -96,7 +96,57 @@ export class Line{
   getVector(){
     return {x:this.x1 - this.x2, y: this.y1-this.y2}
   }
+  
+  calculateVector(line2){
+    return {x:line2.x1 - this.x2, y: line2.y1-this.y2}
+  }
 
+  calculateAngle(line2){
+    const vector1 = this.getVector()
+    const vector2 = line2.getVector()
+    const dotProduct = vector1.x * vector2.x + vector1.y * vector2.y
+    const magnitude1 = Math.sqrt(vector1.x * vector1.x + vector1.y * vector1.y)
+    const magnitude2 = Math.sqrt(vector2.x * vector2.x + vector2.y * vector2.y)
+    
+    //Calculate the angle in radians
+    const thetaRad = Math.acos(dotProduct / (magnitude1 * magnitude2)) 
+    
+    //convert the angle to degrees
+    const angle = (thetaRad * 180) / Math.PI;
+    console.log(`${this.index}: angle between lines: ${angle} degrees`)
+    return angle
+  }
+
+}
+
+/**
+ * 
+ * @param {Number} centerX 
+ * @param {Number} centerY 
+ * @param {Line} line1 
+ * @param {Line} line2 
+ * @returns {{startAngle:Number, endAngle:Number}}
+ */
+export function calculateArcAngles(centerX, centerY, line1, line2){
+  // Calculate angles for vectors
+  const angle1 = Math.atan2(line1.getVector().y, line1.getVector().x);
+  const angle2 = Math.atan2(line2.getVector().y, line2.getVector().x);
+
+   // Calculate angles relative to the center point
+   const relativeAngle1 = Math.atan2(centerY - centerY, centerX - centerX) + angle1;
+   const relativeAngle2 = Math.atan2(centerY - centerY, centerX - centerX) + angle2;
+ 
+   // Convert angles to degrees
+  //  const startAngle = (relativeAngle1 * 180) / Math.PI;
+  //  const endAngle = (relativeAngle2 * 180) / Math.PI;
+ 
+  return {startAngle:relativeAngle1, endAngle:relativeAngle2};
+
+}
+
+
+export function angleToDegrees(angle){
+  return (angle * 180) / Math.PI;
 }
 
 
@@ -127,21 +177,40 @@ export function lineDotProduct(line1,line2){
 
 /**
  * Function to calculate the angle (in degrees) between two vectors given their components (x1, y1) and (x2, y2)
- *  @param {Number} x1 - Start X
- *  @param {Number} y1 - Start Y
- *  @param {Number} x2 - End X
- *  @param {Number} y2 - End Y
+ * @param {Line} line1 
+ * @param {Line} line2 
  */ 
-export function calculateAngle(x1, y1, x2, y2) {
-    const dotProd = dotProduct(x1,x2,y1,y2)
-    const magnitude1 = Math.sqrt(x1 * x1 + y1 * y1);
-    const magnitude2 = Math.sqrt(x2 * x2 + y2 * y2);
+function calculateAngle(line1,line2) {
+    const line1Vector = line1.getVector();
+    const line2Vector = line2.getVector();
+
+    const dotProd = dotProduct(line1Vector.x,line2Vector.x,line1Vector.y,line2Vector.y);
+    const magnitude1 = Math.sqrt(line1Vector.x **2 + line1Vector.y ** 2);
+    const magnitude2 = Math.sqrt(line2Vector.x **2 + line2Vector.y ** 2);
+    
+    //Calculate the angle in Radians
     const cosTheta = dotProd / (magnitude1 * magnitude2);
     const thetaRad = Math.acos(cosTheta);
+    
+    //Convert angle to degrees
     const thetaDeg = (thetaRad * 180) / Math.PI;
+    
     return thetaDeg;
   }
   
+
+  export function calculateInteriorAngle(line1,line2,line3){
+    const angle1 = calculateAngle(line1,line2);
+    const angle2 = calculateAngle(line2,line3);
+    const angle3 = calculateAngle(line3,line1);
+
+    const cosInteriorAngle = (Math.cos(angle1) + Math.cos(angle2) + Math.cos(angle3)) / 2;
+    const interiorAngleRad = Math.acos(cosInteriorAngle);
+    console.log((interiorAngleRad*180)/Math.PI);
+    const interiorAngleDeg = (interiorAngleRad * 180) / Math.PI;
+
+    return interiorAngleDeg
+  }
 
 
 
@@ -159,7 +228,7 @@ export function calculateAnglesForClosedArea(lines) {
       console.error('At least three lines are required to form a closed area.');
       return angles;
     }
-    
+    lines.reverse()
     lines.forEach((line,i,lineArray) =>{
       const nextLine = lineArray[(i + 1) % lineArray.length];
       const angle = Math.atan2(lineCrossProduct(line,nextLine),lineDotProduct(line,nextLine))
@@ -259,4 +328,6 @@ function getBoxCenter(box) {
   y: rect.top + rect.height / 2,
   };
 }
+
+
 
