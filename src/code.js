@@ -106,13 +106,14 @@ summaryTable.initializeRows(lines.lines)
 boxes.boxes.forEach(box => {
   const boxElem = box.getElement();
   boxElem.addEventListener('mousedown', (e) => {
+    // ALLOWS THE BOXES TO BE DRAGGED AROUND THE SCREEN
     selectedBox = boxElem;
     const boxRect = selectedBox.getBoundingClientRect();
     // offsetX = e.clientX - (boxRect.left + boxRect.width / 2);
     // offsetY = e.clientY - (boxRect.top + boxRect.height / 2);
     offsetX = e.clientX - boxRect.left;
     offsetY = e.clientY - boxRect.top;
-    selectedBox.style.cursor = 'grabbing';
+    // selectedBox.style.cursor = 'grabbing';
     // to be able to  delete btn
     
     });
@@ -133,7 +134,9 @@ document.addEventListener('mousemove', (e) => {
 
     selectedBox.style.left = x + 'px';
     selectedBox.style.top = y + 'px';
-    grid.snapToGrid(selectedBox)
+    if(!e.ctrlKey){
+      grid.snapToGrid(selectedBox)
+    }
 
     // Redraw lines
     redrawLines();
