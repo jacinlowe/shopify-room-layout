@@ -2,14 +2,14 @@
 
 
 ## Features
-can layout a room with walls
-calculates the wall length in feet and inches
-can add and remove wall points
-the walls must close
-added angles to the walls but doesnt work currently
+- can layout a room with walls
+- calculates the wall length in feet and inches
+- can add and remove wall points
+- the walls must close
+- added angles to the walls but doesnt work currently
+- ctrl click and drag to unsnap the grid
 
 ## Want to add
-- ctrl click and drag to unsnap the grid
 - scale slider at the bottom to keep track of reference size
 - scale grid when zooming in and out to keep sizes relative
 - add a cancel or complete button to close the window

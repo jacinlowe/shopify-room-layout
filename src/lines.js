@@ -115,7 +115,7 @@ export class Line{
     wallNum.setAttribute('dominant-baseline','middle');
     wallNum.setAttribute('class', 'line-text')
     wallNum.setAttribute('index', this.index-1)
-    wallNum.textContent = `Wall: ${this.index}`
+    wallNum.textContent = `Wall: ${this.index+1}`
     group.appendChild(wallNum)
     this.text = group
     return this

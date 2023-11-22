@@ -6,11 +6,63 @@ export class Boxes{
     constructor(container){
         this.container = container;
         this.boxes = [];
+        this.selectedBox = null;
+        this.boxOffset = null
     }
     addBox(box){
         // box.hoverInfo.addCallback('click','deleteBtn',() => this.removeBox(box))
         this.boxes.push(box)
         this.container.appendChild(box.getElement())
+        this.grabBox(box)
+        // this.moveBox()
+    }
+
+    addBoxAtIndex(box, index) {
+        const nextBox = this.boxes[index+1]
+        this.boxes.splice(index, 0, box)
+        this.container.insertBefore(box.getElement(),nextBox.getElement())
+        this.grabBox(box)
+        this.updateBoxText()
+    }
+    /**
+     * ALLOWS THE BOXES TO BE DRAGGED AROUND THE SCREEN
+     * @param {HTMLElement} boxElem
+     *  */
+    grabBox(box) {
+        console.log('selected box: ',box.id )
+        const boxElem = box.getElement()
+        boxElem.addEventListener('mousedown', (e) => {
+        this.selectBox(box);
+        const boxRect = this.selectedBox.getElement().getBoundingClientRect();
+        this.selectedBox.getElement().style.cursor = 'grabbing';
+        
+        const offsetX = e.clientX - boxRect.left;
+        const offsetY = e.clientY - boxRect.top;
+            
+       
+        this.boxOffset = { offsetX, offsetY }
+            // console.log(this.boxOffset)
+        box.hoverInfo.pauseHoverInfo()
+        });
+
+    }
+
+    // moveBox() {
+    //     document.addEventListener('mousemove', (e) => {
+    //        if (!this.selectedBox) return
+    //         // console.log(e)
+
+    //     })
+
+    // }
+
+    
+    selectBox(box) {
+        this.selectedBox = box;
+    }
+    unselectBox() {
+        this.selectedBox = null;
+        // this.boxOffset = null;
     }
     getBoxes(){
         return this.boxes
@@ -138,14 +190,21 @@ class HoverInfo{
         // Append the hover info to the container and fade it in
         this.hoverInfo.appendChild(deleteBtn);
 
-
-        // LISTENERS
-        this.hoverInfo.addEventListener('mouseenter', () => this.showHoverInfo())
-        this.hoverInfo.addEventListener('mouseleave', () => this.hideHoverInfo())
-
+        this.setHoverInfoEvents();
         this.hoverInfo.style.opacity = '0';
         this.hoverInfo.classList.add('transition')
         return this
+    }
+
+    pauseHoverInfo() {
+        this.hideHoverInfo();
+        this.hoverInfo.removeEventListener('mouseenter', () => this.showHoverInfo())
+        this.hoverInfo.removeEventListener('mouseleave', () => this.hideHoverInfo())
+    }
+    setHoverInfoEvents() {
+        // LISTENERS
+        this.hoverInfo.addEventListener('mouseenter', () => this.showHoverInfo())
+        this.hoverInfo.addEventListener('mouseleave', () => this.hideHoverInfo())
     }
 
     createDeleteBtn(){
