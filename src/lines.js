@@ -45,6 +45,7 @@ export class Line{
         this.y2 = y2
         this.length = length
         this.color = color
+        
     }
 
   static createLineFromBoxes(startBox,endBox, color=null){
@@ -85,14 +86,14 @@ export class Line{
       this.color = color
     return this
   }
-  createText(){
+  createText(scale=10,xOffset=20,yOffset=-10){
     
     const middleX = (parseFloat(this.x1) + parseFloat(this.x2)) / 2
     const middleY = (parseFloat(this.y1) + parseFloat(this.y2)) / 2
 
     // Offset values for text position (adjust as needed)
-    const xOffset = 20; // Offset text horizontally
-    const yOffset = -10; // Offset text vertically
+    // const xOffset = xOffset; // Offset text horizontally
+    // const yOffset = yOffset; // Offset text vertically
 
     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');  
     
@@ -104,7 +105,7 @@ export class Line{
     text.setAttribute('dominant-baseline','middle');
     text.setAttribute('class', 'line-text')
     text.setAttribute('index', this.index-1)
-    text.textContent = this.getLineText();
+    text.textContent = this.getLineText(scale);
     group.appendChild(text)
     
     // added wall num
@@ -120,13 +121,13 @@ export class Line{
     this.text = group
     return this
   }
-  getLineText(){
+  getLineText(scale=10){
     
-    const lengthInPixels = calculateLineLength(this.x1, this.y1, this.x2, this.y2);
+    this.length = calculateLineLength(this.x1, this.y1, this.x2, this.y2);
     
     // Convert length from pixels to feet and inches (adjust the conversion factor as needed)
-    const pixelsToFeet = 1 / 10; // Adjust this factor to match your scale
-    const lengthInFeet = lengthInPixels * pixelsToFeet;
+    const pixelsToFeet = 1 / scale; // Adjust this factor to match your scale
+    const lengthInFeet = this.length * pixelsToFeet;
     const lengthFeet = Math.floor(lengthInFeet);
     const lengthInches = Math.round((lengthInFeet - lengthFeet) * 12);
     
@@ -137,6 +138,10 @@ export class Line{
 
   length(){
     return this.length
+  }
+  
+  setLength(length){
+    this.length = length;
   }
 
   getVector(){

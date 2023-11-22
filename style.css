@@ -1,3 +1,9 @@
+:root{
+  --baseHue: 190;
+  --gridColor: hsla(var(--baseHue),100%,50%,0.5);
+  --grid-size: 1rem;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -7,6 +13,17 @@ body {
     align-items: center; */
     /* height: 100vh; */
     background-color: #b4b4b4;
+    /* background: #fff;
+    min-height: 100vh;
+    background-image: 
+      linear-gradient(0deg, var(--gridColor) 0%, transparent 1px), 
+      linear-gradient(90deg, var(--gridColor) 0%, transparent 1px);
+    background-position: center;
+    background-size: 100% 1rem;
+    background-size: 
+      100% var(--grid-size), 
+      var(-grid-size) 100%;
+    transition: background-size 0.25s; */
   }
 
   #container {
@@ -211,11 +228,15 @@ table.summaryTable tfoot td {
 
 
 .zoomSlider{
-  width:100%
+  width:100%;
+  display:flex;
+  flex: row wrap;
+  margin-top: 10px;
+  padding: 5px;
 }
 .slider{
   appearance: none;
-  width: 100%;
+  width: 90%;
   height: 25px;
   background: #d3d3d3;
   outline: none;
@@ -241,6 +262,31 @@ table.summaryTable tfoot td {
   border-radius: 50%;
   background: #04AA6D; /* Green background */
   cursor: pointer; /* Cursor on hover */
+}
+
+.zoomSliderValue{
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  color: #fff;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 3px;
+  background: #2c3e50;
+  padding: 5px 10px;
+  margin-left: 8px;
+  &::after{
+    position: absolute;
+    top:8px;
+    left:-7px;
+    width: 0;
+    height:0;
+    border-top: 7px solid transparent;
+    border-right: 7px solid #2c3e50 ;
+    border-bottom: 7px solid transparent;
+    content: '';
+  }
+
 }
 
 @media (max-width: 600px) {

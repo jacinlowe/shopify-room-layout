@@ -1,5 +1,32 @@
 
 
+export class Slider{
+  constructor(min, max, steps=null, value=null){
+    this.displayValue = document.getElementById('sliderValue')
+    this.element = document.getElementById('rangeSlider');
+    
+    if (steps){
+      this.steps = steps
+    }
+    if(value){
+      this.updateValue(value)
+    }else{
+      this.value = this.element.value;
+    }
+
+    this.element.min = min;
+    this.element.max = max;
+    this.element.addEventListener('input',(e) => this.updateValue(e.target.value))
+    // this.element.addEventListener('change',(e) => console.log(e.target.value))
+  }
+
+  updateValue(value){
+    this.value = value;
+    this.element.value = value;
+    this.displayValue.textContent = value;
+  }
+}
+
 export class Grid{
   constructor(spacing, pointRadius=2, svgID='grid'){
     this.spacing = spacing;
@@ -9,6 +36,7 @@ export class Grid{
     this.screenHight = window.innerHeight;
     this.numRows = Math.floor(this.screenHight / this.spacing);
     this.numCols = Math.floor(this.screenWidth / this.spacing);
+    this.scale = this.spacing;
   }
 
   drawGrid(spacing=null){
@@ -35,7 +63,7 @@ export class Grid{
   scaleGrid(currentScale){
     const gridPoints = document.querySelectorAll('.grid-dot');
     const scaledGridSpacing = this.spacing * currentScale;
-    
+    this.scale = scaledGridSpacing
     console.log("scalegrid",scaledGridSpacing)
     // Update the size and spacing of the grid dots
     this.updateRowAndColumns(scaledGridSpacing)

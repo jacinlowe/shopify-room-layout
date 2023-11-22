@@ -1,4 +1,4 @@
-import { Grid } from './grid.js';
+import { Grid,Slider } from './grid.js';
 import { Line, Lines, calculateArcAngles } from './lines.js';
 import { shadePolygon } from './polygon.js'
 import { SummaryTable } from './summaryBox.js';
@@ -11,6 +11,7 @@ const hoverInfoContainer = document.getElementById('hoverInfoContainer');
 const angleIndicators = document.getElementById('angleIndicators');
 const body = document.getElementById('body')
 const rows = document.querySelectorAll('#summaryTable tr');
+
 
 const GRID_SPACING = 20
 const POLYGON_FILL_COLOR = 'blue'; // Replace with the desired fill color
@@ -26,7 +27,7 @@ let offsetX, offsetY;
 const boxes = new Boxes(container);
 let lines = new Lines(svg);
 const grid = new Grid(GRID_SPACING);
-
+const scaleSlider = new Slider(MIN_SCALE, MAX_SCALE, SCALE_INCREMENT,grid.currentScale);
 
 // rows.forEach(row => {
   
@@ -220,6 +221,8 @@ function handleWindowResize(){
 }
 
 
+
+
 export function drawLines(){
     lines.clearLines()
     const boxList = boxes.boxes;
@@ -229,7 +232,7 @@ export function drawLines(){
         .createLineFromBoxes(box.element,nextBox.element)
         .createLine()
         .setIndex(index)
-        .createText()
+        .createText(grid.scale)
 
         lines.addLine(line);
     })
@@ -401,6 +404,7 @@ function addBoxBetweenBoxes(startBox, endBox,lineMidPoint=null) {
   
     const newBox = new Box(endIndex-1);
     newBox.positionBox(x,y);
+    newBox.hoverInfo.addCallback('click','deleteBtn',() => handleDeleteBox(newBox));
 
     boxes.addBoxAtIndex(newBox,endIndex)
 
