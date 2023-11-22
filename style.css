@@ -100,6 +100,24 @@ body {
     z-index: 10000;
   }
 
+.hoverInfo{
+  position: absolute;
+  display: inline-grid;
+  grid-template-columns: 25px 50px 0px;
+  grid-template-rows: 25px 50px 0px;
+  grid-template-areas:
+      "topLeft top topRight"
+      "left center right"
+      "bottomLeft bottom bottomRight";
+  width: 100px;
+  height: 100px;
+  
+  /* border: 2px dashed #0B6FA4; */
+}
+/* .hoverInfo:hover{
+  border:5px dotted;
+} */
+
 .delete-button{
  background-color: rgba(255, 0, 0, 0.274);
  
@@ -108,13 +126,14 @@ body {
  padding: 2px 5px;
  border-radius: 50%;
  cursor:pointer;
- position:absolute;
- z-index: 100;
+ grid-area: topRight;
+ /* position:relative; */
+ /* z-index: 100; */
  width:20px;
  height:20px;
  text-align: center;
- top: -10px;
- right: -10px;
+ /* top: -10px;
+ right: -10px; */
 }
 
 .transition{

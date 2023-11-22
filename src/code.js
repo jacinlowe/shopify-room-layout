@@ -9,6 +9,7 @@ const rootContainer = document.getElementById('rootContainer');
 const svg = document.getElementById('lines');
 const hoverInfoContainer = document.getElementById('hoverInfoContainer');
 const angleIndicators = document.getElementById('angleIndicators');
+const body = document.getElementById('body')
 const rows = document.querySelectorAll('#summaryTable tr');
 
 const GRID_SPACING = 20
@@ -23,44 +24,44 @@ let selectedBox = null;
 let offsetX, offsetY;
 
 const boxes = new Boxes(container);
-let lines = new Lines();
+let lines = new Lines(svg);
 const grid = new Grid(GRID_SPACING);
 
 
-rows.forEach(row => {
+// rows.forEach(row => {
   
-  row.addEventListener('click', () => {
+//   row.addEventListener('click', () => {
     
-    // Get current corner type text
-    const cornerTypeCell = row.querySelector('td:last-child');
-    const currentType = cornerTypeCell.textContent;
+//     // Get current corner type text
+//     const cornerTypeCell = row.querySelector('td:last-child');
+//     const currentType = cornerTypeCell.textContent;
     
-    // Create and show dropdown with current selected
-    const select = document.createElement('select');
-    select.value = currentType;
+//     // Create and show dropdown with current selected
+//     const select = document.createElement('select');
+//     select.value = currentType;
     
-    const insideOption = document.createElement('option');
-    insideOption.value = 'Inside';
-    insideOption.text = 'Inside';
+//     const insideOption = document.createElement('option');
+//     insideOption.value = 'Inside';
+//     insideOption.text = 'Inside';
     
-    const outsideOption = document.createElement('option');
-    outsideOption.value = 'Outside';  
-    outsideOption.text = 'Outside';
+//     const outsideOption = document.createElement('option');
+//     outsideOption.value = 'Outside';  
+//     outsideOption.text = 'Outside';
     
-    select.append(insideOption, outsideOption);
+//     select.append(insideOption, outsideOption);
     
-    cornerTypeCell.textContent = ''; 
-    cornerTypeCell.append(select);
+//     cornerTypeCell.textContent = ''; 
+//     cornerTypeCell.append(select);
     
-    // Hide on change
-    select.addEventListener('change', () => {
-      cornerTypeCell.textContent = select.value;
-      select.remove(); 
-    });
+//     // Hide on change
+//     select.addEventListener('change', () => {
+//       cornerTypeCell.textContent = select.value;
+//       select.remove(); 
+//     });
     
-  });
+//   });
   
-}); 
+// }); 
 
 // Create N draggable boxes
 // const N = 5; // Change N to the desired number of boxes
@@ -116,10 +117,12 @@ boxes.boxes.forEach(box => {
     
     });
     // HOVER INFO for BOXES
-    boxElem.addEventListener('mouseenter', () => showHoverInfo(box))
-    boxElem.addEventListener('mouseleave', () => delayHideHoverInfo())
+    // boxElem.addEventListener('mouseenter', () => showHoverInfo(box))
+    // boxElem.addEventListener('mouseleave', () => delayHideHoverInfo())
     // box.addEventListener('mouseup', cancelLongPress);
+    box.hoverInfo.addCallback('click','deleteBtn',() => handleDeleteBox(box))
 });
+
 
 //Document event listeners
 document.addEventListener('mousemove', (e) => {
@@ -134,7 +137,7 @@ document.addEventListener('mousemove', (e) => {
 
     // Redraw lines
     redrawLines();
-    updateDeleteButtonPosition(selectedBox);
+    // updateDeleteButtonPosition(selectedBox);
 });
 
 document.addEventListener('mouseup', () => {
@@ -143,6 +146,9 @@ document.addEventListener('mouseup', () => {
     selectedBox = null;
     }
 });
+
+
+document.addEventListener('resize',handleWindowResize)
 
 container.addEventListener('mousedown', (e)=>{
     console.log('container mouse down')
@@ -203,40 +209,39 @@ function handleZoom(event){
     // })
 }
 
+function handleWindowResize(){
+  
+  console.log(document.documentElement.clientWidth, document.documentElement.clientHeight);
+  console.log('window resized')
+}
+
 
 export function drawLines(){
-    
-    while (svg.firstChild){
-        svg.removeChild(svg.firstChild);
-    }
-    
     lines.clearLines()
     const boxList = boxes.boxes;
     boxList.forEach((box, index, array) => {
         const nextBox = array[(index + 1) %array.length];
-        // const line = createLine(box,nextBox,index)
         const line = Line
         .createLineFromBoxes(box.element,nextBox.element)
         .createLine()
         .setIndex(index)
+        .createText()
 
         lines.addLine(line);
-        svg.appendChild(line.line);
-        createTextOnLine(line,index+1)
     })
 
     // Add a click event listener to each line for adding a box between boxes
     lines.lines.forEach((line) => {
         line.line.addEventListener('click', (e) => {
             const lineIndex = parseInt(e.currentTarget.getAttribute('data-index'));
-            console.log(lineIndex)
+            console.log(`line Index: ${lineIndex}`)
             const startBox = boxList[lineIndex];
             const endBoxIndex = (lineIndex + 1) % boxList.length
             const endBox = boxList[endBoxIndex]; // Wrap around for the last box
             // console.log(lineIndex)
             console.log(boxList,'startBox: ',startBox,'endBox: ',endBox)
             addBoxBetweenBoxes(startBox, endBox);
-            createTextOnLine(line,lineIndex)
+            
         });})
         // svg.appendChild(line);
     drawAngles(lines.lines)
@@ -354,40 +359,7 @@ function redrawLines() {
 // }
 
 
-/**
- * 
- * @param {Line} line 
- * @param {Number} lineIndex 
- */
-function createTextOnLine(line,lineIndex){
-    
-    // add text to the line
-    // const x1 = line.getAttribute('x1');
-    // const x2 = line.getAttribute('x2');
-    // const y1 = line.getAttribute('y1');
-    // const y2 = line.getAttribute('y2');
-    
-    const middleX = (parseFloat(line.x1) + parseFloat(line.x2)) / 2
-    const middleY = (parseFloat(line.y1) + parseFloat(line.y2)) / 2
-
-    // Offset values for text position (adjust as needed)
-    const xOffset = 20; // Offset text horizontally
-    const yOffset = -10; // Offset text vertically
-
-
-    // create the text
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x',middleX + xOffset);
-    text.setAttribute('y',middleY + yOffset);
-    text.setAttribute('text-anchor','start');
-    text.setAttribute('dominant-baseline','middle');
-    text.setAttribute('class', 'line-text')
-    text.textContent = line.getLineText();
-    // added wall num
-    text.textContent += ` Wall: ${lineIndex}`
-    document.getElementById('lines').appendChild(text)
-}
-
+// TODO:REPLACE THIS WITH A BOX METHOD TO UPDATE THE POSITIONING
   // Function to add a box between two existing boxes connected by a line
 function addBoxBetweenBoxes(startBox, endBox) {
 
@@ -396,18 +368,18 @@ function addBoxBetweenBoxes(startBox, endBox) {
         console.error("End box not found in boxes array.");
         return
     }
-    const box1Rect = startBox.element.getBoundingClientRect();
-    const box2Rect = endBox.element.getBoundingClientRect();
+    const box1Rect = startBox.getElement().getBoundingClientRect();
+    const box2Rect = endBox.getElement().getBoundingClientRect();
   
     const x = (box1Rect.left + box2Rect.left) / 2;
     const y = (box1Rect.top + box2Rect.top) / 2;
   
     const newBox = new Box(endIndex-1);
     newBox.positionBox(x,y);
-    newBox.element.addEventListener('mouseenter', () => showHoverInfo(newBox))
-    newBox.element.addEventListener('mouseleave', () => delayHideHoverInfo())
+    // newBox.element.addEventListener('mouseenter', () => showHoverInfo(newBox))
+    // newBox.element.addEventListener('mouseleave', () => delayHideHoverInfo())
 
-    startBox.element.parentElement.insertBefore(newBox.element,endBox.element.nextSibling)
+    startBox.getElement().parentElement.insertBefore(newBox.element,endBox.element.nextSibling)
     boxes.boxes.splice(endIndex,0,newBox)
     // update the box text
     boxes.updateBoxText()

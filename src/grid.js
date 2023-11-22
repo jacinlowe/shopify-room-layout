@@ -75,7 +75,7 @@ export class Grid{
 
 
 // Function to create a grid of points
-export function createGrid(spacing) {
+function createGrid(spacing) {
     const svg = document.getElementById('grid');
 
     const screenWidth = window.innerWidth;
@@ -99,7 +99,7 @@ export function createGrid(spacing) {
   }
 
   // Function to snap a box to the nearest grid point
-export function snapToGrid(box, spacing) {
+function snapToGrid(box, spacing) {
     const x = parseInt(box.style.left);
     const y = parseInt(box.style.top);
   
@@ -117,7 +117,7 @@ export function snapToGrid(box, spacing) {
  * @param {Number} spacing - the new spacing of the grid
  * @param {Number} currentScale - the current scale of the grid
  */
-export function scaleGrid(spacing,currentScale){
+function scaleGrid(spacing,currentScale){
   const gridDots = document.querySelectorAll('.grid-dot');
   const scaledGridSpacing = spacing * currentScale;
   console.log("scalegrid",scaledGridSpacing)

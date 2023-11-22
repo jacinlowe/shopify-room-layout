@@ -1,9 +1,14 @@
 
 export class Lines{
-  constructor(){
+  constructor(lineSVG){
+    this.svg = lineSVG
     this.lines = []
   }
   addLine(line){
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');  
+    group.appendChild(line.line);
+    group.appendChild(line.text)
+    this.svg.appendChild(group)
     this.lines.push(line)
   }
   updateLine(id=null,line=null){
@@ -21,7 +26,12 @@ export class Lines{
   }
 
   clearLines(){
+        
+    while (this.svg.firstChild){
+      this.svg.removeChild(this.svg.firstChild);
+    }
     this.lines = []
+
   }
 
 
@@ -54,6 +64,7 @@ export class Line{
 
   createLine(){
     this.line = document.createElementNS('http://www.w3.org/2000/svg', 'line');  
+    
     this.line.setAttribute('x1', this.x1 + 'px');
     this.line.setAttribute('y1', this.y1 + 'px');
     this.line.setAttribute('x2', this.x2 + 'px');
@@ -72,6 +83,41 @@ export class Line{
 
   setColor(color){
       this.color = color
+    return this
+  }
+  createText(){
+    
+    const middleX = (parseFloat(this.x1) + parseFloat(this.x2)) / 2
+    const middleY = (parseFloat(this.y1) + parseFloat(this.y2)) / 2
+
+    // Offset values for text position (adjust as needed)
+    const xOffset = 20; // Offset text horizontally
+    const yOffset = -10; // Offset text vertically
+
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');  
+    
+    // create the text
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x',middleX + xOffset);
+    text.setAttribute('y',middleY + yOffset);
+    text.setAttribute('text-anchor','start');
+    text.setAttribute('dominant-baseline','middle');
+    text.setAttribute('class', 'line-text')
+    text.setAttribute('index', this.index-1)
+    text.textContent = this.getLineText();
+    group.appendChild(text)
+    
+    // added wall num
+    const wallNum = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    wallNum.setAttribute('x',middleX + xOffset);
+    wallNum.setAttribute('y',middleY + yOffset+20);
+    wallNum.setAttribute('text-anchor','start');
+    wallNum.setAttribute('dominant-baseline','middle');
+    wallNum.setAttribute('class', 'line-text')
+    wallNum.setAttribute('index', this.index-1)
+    wallNum.textContent = `Wall: ${this.index}`
+    group.appendChild(wallNum)
+    this.text = group
     return this
   }
   getLineText(){

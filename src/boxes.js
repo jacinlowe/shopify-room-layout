@@ -8,6 +8,7 @@ export class Boxes{
         this.boxes = [];
     }
     addBox(box){
+        // box.hoverInfo.addCallback('click','deleteBtn',() => this.removeBox(box))
         this.boxes.push(box)
         this.container.appendChild(box.getElement())
     }
@@ -32,8 +33,8 @@ export class Boxes{
             const x = centerX + (this.container.offsetWidth / 4) * Math.cos(angle) - box.size / 2;
             const y = centerY + (this.container.offsetHeight / 4) * Math.sin(angle) - box.size / 2;
 
-            box.element.style.left = x + 'px';
-            box.element.style.top = y + 'px';
+            box.positionBox(x,y);
+            
         })
     }
     updateBoxText(){
@@ -48,23 +49,42 @@ export class Boxes{
 
 export class Box{
     constructor(id,size=50){
-        ;
         this.size = size;
         this.id = id;
         this.element = document.createElement('div');
+        this.text = document.createElement('p');
         this.element.className = 'drag-box';
+        
         this.element.id = `box${id}`;
         this.element.style.width = size + 'px'; // Set the width
         this.element.style.height = size + 'px'; // Set the height
-        this.element.textContent = `Box ${id}`;
-
+        this.text.textContent = `Box ${id}`;
+        
+        this.hoverInfo = new HoverInfo(this)
+        .createHoverInfo()
+        this.element.appendChild(this.text)
+        this.element.appendChild(this.hoverInfo.getHoverInfo())
+        // this.pointGroup.appendChild(this.element)
     }
+
     getElement(){
         return this.element
     };
+    getHoverInfo(){
+        return this.hoverInfo.getHoverInfo()
+    }
+    // getPointGroup(){
+    //     return this.pointGroup
+    // }
     positionBox(x,y){
-        this.element.style.left = x - this.size / 2 + 'px';
-        this.element.style.top = y - this.size / 2 + 'px';
+        const xPos = x - this.size / 2;
+        const yPos = y - this.size / 2;
+
+        // this.pointGroup.style.left = xPos + 'px';
+        // this.pointGroup.style.top = yPos + 'px';
+
+        this.element.style.left = xPos + 'px';
+        this.element.style.top = yPos + 'px';
     }
     
     getPosition(){
@@ -72,7 +92,10 @@ export class Box{
     }
 
     updateText(id){
-        this.element.textContent = `Box ${id}`;
+        this.text.textContent = `Box ${id}`;
+        // this.element.textContent += `Box ${id}`;
+        this.element.id = `box${id}`
+        
     }
 
 }
@@ -98,19 +121,78 @@ class HoverInfo{
      */
     constructor(box){
         this.box = box
-        this.elements = []
+        this.elements = new Object()
+        
+    }
+    getHoverInfo(){
+        return this.hoverInfo
+    }
+    createHoverInfo(){
+        this.hoverInfo = document.createElement('div');
+        this.hoverInfo.className = 'hoverInfo';
+        
+        while (this.hoverInfo.firstChild){
+            this.hoverInfo.removeChild(this.hoverInfo.firstChild);
+        }
+        const deleteBtn = this.createDeleteBtn()    
+        // Append the hover info to the container and fade it in
+        this.hoverInfo.appendChild(deleteBtn);
+
+
+        // LISTENERS
+        this.hoverInfo.addEventListener('mouseenter', () => this.showHoverInfo())
+        this.hoverInfo.addEventListener('mouseleave', () => this.hideHoverInfo())
+
+        this.hoverInfo.style.opacity = '0';
+        this.hoverInfo.classList.add('transition')
+        return this
+    }
+
+    createDeleteBtn(){
+        const deleteBtn = document.createElement('div');
+        deleteBtn.className = 'delete-button';
+        deleteBtn.textContent = 'X';
+        
+        //Add the event listner to delete the box
+        // deleteBtn.addEventListener('click', () => handleDeleteBox(this.box))
+        this.elements = {deleteBtn, ...this.elements}
+        return deleteBtn
+    }
+    /**
+     * 
+     * @param {type} event - click
+     * @param {HTMLElementName} element 
+     * @param {Event} listener
+     */
+    addCallback(event, element, listener){
+        if(element in this.elements){
+            this.elements[element].addEventListener(event,listener)
+        }
     }
 
     addInfoItem(item,){
         this.elements.push(item)
     }
-
-    topLeft(){
-        const boxRect = this.box.getElement().getBoundingClientRect();
-        const xOffset = DELETE_BUTTON_OFFSET.x; // Adjust the horizontal offset
-        const yOffset = DELETE_BUTTON_OFFSET.y; // Adjust the vertical offset
-        const leftOffset =  boxRect.left + xOffset + 'px';
-        const topOffset = boxRect.top + yOffset + 'px';
-        return {leftOffset,topOffset}
+    
+    showHoverInfo() {
+        
+        this.hoverInfo.style.opacity = '0';
+        this.hoverInfo.classList.add('transition')
+        setTimeout(() => {
+            this.hoverInfo.style.opacity = '1';
+        }, 10); // Delay for smoother fade-in
     }
+
+
+
+    hideHoverInfo(){
+    
+    this.hoverInfo.style.opacity = '1';
+    this.hoverInfo.classList.add('transition')
+    setTimeout(() => {
+      this.hoverInfo.style.opacity = '0';
+      
+    
+  }, 50); // Delay for smoother fade-out
+  }
 }
