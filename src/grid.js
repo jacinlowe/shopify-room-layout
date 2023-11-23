@@ -1,34 +1,39 @@
 
 
 export class Slider{
-  constructor(min, max, steps=null, value=null){
-    this.displayValue = document.getElementById('sliderValue')
-    this.element = document.getElementById('rangeSlider');
-    
-    if (steps){
-      this.steps = steps
-    }
+  constructor(value=null ){
+    this.zoomDisplay = document.getElementById('zoomValue')
+    this.zoomInBtn = document.getElementById('zoomIn')
+    this.zoomOutBtn = document.getElementById('zoomOut')
     if(value){
       this.updateValue(value)
-    }else{
-      this.value = this.element.value;
     }
-
-    this.element.min = min;
-    this.element.max = max;
-    this.element.addEventListener('input',(e) => this.updateValue(e.target.value))
-    // this.element.addEventListener('change',(e) => console.log(e.target.value))
   }
 
   updateValue(value){
+    // const percentage = (value - this.element.min) / (this.element.max - this.element.min);
+    // console.log(value, percentage*100)
     this.value = value;
-    this.element.value = value;
-    this.displayValue.textContent = value;
+    this.zoomDisplay.textContent = `${Number(value*100).toFixed(0)}%`;
+  }
+  convertToInt(value){
+    return parseInt(value*100)
+  }
+
+  zoomInCallback(fn){
+    this.zoomInBtn.addEventListener('click',(e) => fn(e))  
+  }
+  zoomOutCallback(fn){
+    this.zoomOutBtn.addEventListener('click',(e) => fn(e))
+  }
+
+  updateScale(scale){
+    this.updateValue(scale);
   }
 }
 
 export class Grid{
-  constructor(spacing, pointRadius=2, svgID='grid'){
+  constructor(spacing, pointRadius=2,currentScale, svgID='grid'){
     this.spacing = spacing;
     this.pointRadius = pointRadius*2;
     this.svg = document.getElementById(svgID);
@@ -37,6 +42,7 @@ export class Grid{
     this.numRows = Math.floor(this.screenHight / this.spacing);
     this.numCols = Math.floor(this.screenWidth / this.spacing);
     this.scale = this.spacing;
+    this.currentScale = currentScale;
   }
 
   drawGrid(spacing=null){

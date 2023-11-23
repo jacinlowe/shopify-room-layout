@@ -45,6 +45,7 @@ export class Line{
         this.y2 = y2
         this.length = length
         this.color = color
+        this.lengthText = null
         
     }
 
@@ -121,6 +122,7 @@ export class Line{
     this.text = group
     return this
   }
+  
   getLineText(scale=10){
     
     this.length = calculateLineLength(this.x1, this.y1, this.x2, this.y2);
@@ -133,7 +135,8 @@ export class Line{
     
     // Display the length in a dialog or alert (you can customize this part)
     const formattedLengthText = formatLength(lengthFeet, lengthInches);
-    return formattedLengthText
+    this.lengthText = formattedLengthText;
+    return this.lengthText;
   }
 
   length(){
@@ -271,7 +274,7 @@ function calculateAngle(line1,line2) {
  * @param {[Line]} lines 
  * @returns angle - Number
  */
-export function calculateAnglesForClosedArea(lines) {
+function calculateAnglesForClosedArea(lines) {
     const angles = [];
   
     // Ensure there are at least three lines to form a closed area
@@ -342,7 +345,7 @@ function isPointInsidePolygon(pointX, pointY, polygon) {
 }
 
 
-export function formatLine(line){
+function formatLine(line){
   return { x1: parseFloat(line.getAttribute('x1')), y1: parseFloat(line.getAttribute('y1')), x2: parseFloat(line.getAttribute('x2')), y2: parseFloat(line.getAttribute('y2')) };
 }
 

@@ -15,7 +15,7 @@ export class SummaryTable {
     initializeRows(lines){
       lines.forEach((line) => {
           const wallNum = line.index +1;
-          const length = line.getLineText();
+          const length = line.lengthText;
           const cornerType = line.cornerType?? 'Inside';
           this.addRow(wallNum, length, cornerType);
       })

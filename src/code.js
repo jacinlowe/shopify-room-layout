@@ -26,8 +26,8 @@ let offsetX, offsetY;
 
 const boxes = new Boxes(container);
 let lines = new Lines(svg);
-const grid = new Grid(GRID_SPACING);
-const scaleSlider = new Slider(MIN_SCALE, MAX_SCALE, SCALE_INCREMENT,grid.currentScale);
+const grid = new Grid(GRID_SPACING,currentScale);
+const scaleSlider = new Slider(grid.currentScale ?? 1);
 
 // rows.forEach(row => {
   
@@ -169,31 +169,50 @@ container.addEventListener('mousedown', (e)=>{
 // rootContainer.addEventListener('wheel',() => console.log('scrolling'))
 
 rootContainer.addEventListener('wheel', (e) =>  handleZoom(e));
+scaleSlider.zoomInCallback(zoomIn)
+scaleSlider.zoomOutCallback(zoomOut)
 
+//TODO: NEED TO COLLAPSE THIS INTO A SIMPLER IMPLEMENTATION
+function zoomOut(event){
+  if (currentScale <= MIN_SCALE) return;
+  event.preventDefault();
 
-// Event listeners for long-press and delete confirmation
+  //calculate the scale factor based on the scroll direction
+  currentScale += -SCALE_INCREMENT;
+  //Clamp the scale factor within the defined bounds
+  currentScale = Math.min(MAX_SCALE,Math.max(MIN_SCALE,currentScale))
+  console.log(currentScale)
 
-
-// confirmDeleteButton.addEventListener('click', () => {
-//     // Perform the deletion logic here
-//     console.log(selectedBoxDelete)
-//     if (selectedBoxDelete) {
-//         // Remove the box from the 'boxes' list
-//         const indexToRemove = boxes.indexOf(selectedBoxDelete);
-//         if (indexToRemove !== -1) {
-//         boxes.splice(indexToRemove, 1);
-//         }
-//         selectedBoxDelete.remove();
-//       hideDeletePopup();
-//     }
-//   });
+  // Apply the scale transform to the container and its contents
+  container.style.transform = `scale(${currentScale})`;
   
-//   cancelDeleteButton.addEventListener('click', () => {
-//     hideDeletePopup();
-//   });
+  // update the position of lines boxes,and polygons here.
+  grid.scaleGrid(currentScale)
+  
+  redrawLines()
+  scaleSlider.updateScale(currentScale)
+}
 
+function zoomIn(event){
+  if (currentScale >= MAX_SCALE) return;
+  //calculate the scale factor based on the scroll direction
+  currentScale += SCALE_INCREMENT;
+  //Clamp the scale factor within the defined bounds
+  currentScale = Math.min(MAX_SCALE,Math.max(MIN_SCALE,currentScale))
+  console.log(currentScale)
+
+  // Apply the scale transform to the container and its contents
+  container.style.transform = `scale(${currentScale})`;
+  
+  // update the position of lines boxes,and polygons here.
+  grid.scaleGrid(currentScale)
+  
+  redrawLines()
+  scaleSlider.updateScale(currentScale)
+}
 
 function handleZoom(event){
+  
     event.preventDefault();
 
     //calculate the scale factor based on the scroll direction
@@ -201,17 +220,15 @@ function handleZoom(event){
     //Clamp the scale factor within the defined bounds
     currentScale = Math.min(MAX_SCALE,Math.max(MIN_SCALE,currentScale))
     console.log(currentScale)
+
     // Apply the scale transform to the container and its contents
     container.style.transform = `scale(${currentScale})`;
+    
     // update the position of lines boxes,and polygons here.
     grid.scaleGrid(currentScale)
+    
     redrawLines()
-    // lines.forEach((line) =>{
-    //   const originalLength = line.getAttribute('data-original-length');
-    //   const scaledLength = originalLength * currentScale;
-    //   line.setAttribute('x2',scaledLength)
-    //   line.setAttribute('y2',scaledLength)
-    // })
+    scaleSlider.updateScale(currentScale)
 }
 
 function handleWindowResize(){
@@ -429,6 +446,10 @@ function calculateLineLength(x1, y1, x2, y2) {
 
 
   function handleDeleteBox(box){
+    if (boxes.boxes.length <= 3) {
+      console.log("Cannot delete box. Must have at least 3 boxes.");
+      return
+    };
     boxes.removeBox(box);
     boxes.updateBoxText();
     redrawLines();

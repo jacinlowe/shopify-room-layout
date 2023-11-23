@@ -18,7 +18,7 @@ export class Boxes{
     }
 
     addBoxAtIndex(box, index) {
-        const nextBox = this.boxes[index+1]
+        const nextBox = this.boxes[(index+1) % this.boxes.length]
         this.boxes.splice(index, 0, box)
         this.container.insertBefore(box.getElement(),nextBox.getElement())
         this.grabBox(box)
@@ -186,9 +186,11 @@ class HoverInfo{
         while (this.hoverInfo.firstChild){
             this.hoverInfo.removeChild(this.hoverInfo.firstChild);
         }
-        const deleteBtn = this.createDeleteBtn()    
+        const deleteBtn = this.createDeleteBtn()
+        const optionsBtn = this.createOptionsBtn()
         // Append the hover info to the container and fade it in
         this.hoverInfo.appendChild(deleteBtn);
+        this.hoverInfo.appendChild(optionsBtn);
 
         this.setHoverInfoEvents();
         this.hoverInfo.style.opacity = '0';
@@ -209,13 +211,30 @@ class HoverInfo{
 
     createDeleteBtn(){
         const deleteBtn = document.createElement('div');
-        deleteBtn.className = 'delete-button';
+        deleteBtn.classList.add('button')
+        deleteBtn.classList.add('delete-button');
         deleteBtn.textContent = 'X';
         
         //Add the event listner to delete the box
         // deleteBtn.addEventListener('click', () => handleDeleteBox(this.box))
         this.elements = {deleteBtn, ...this.elements}
         return deleteBtn
+    }
+
+    createOptionsBtn(){
+        const optionsBtn = document.createElement('div');
+        for (let i=1; i<=3;i++){
+            const line = document.createElement('span')
+            optionsBtn.appendChild(line)
+        }
+        optionsBtn.classList.add('button')
+        optionsBtn.classList.add('options-button');
+        
+        
+        //Add the event listner to delete the box
+        // deleteBtn.addEventListener('click', () => handleDeleteBox(this.box))
+        this.elements = {optionsBtn: optionsBtn, ...this.elements}
+        return optionsBtn
     }
     /**
      * 
