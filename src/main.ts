@@ -27,61 +27,11 @@ const boxes = new Boxes(container);
 let lines = new Lines(svg);
 const grid = new Grid(GRID_SPACING,currentScale);
 const scaleSlider = new Slider(grid.currentScale ?? 1);
-
-// rows.forEach(row => {
-  
-//   row.addEventListener('click', () => {
-    
-//     // Get current corner type text
-//     const cornerTypeCell = row.querySelector('td:last-child');
-//     const currentType = cornerTypeCell.textContent;
-    
-//     // Create and show dropdown with current selected
-//     const select = document.createElement('select');
-//     select.value = currentType;
-    
-//     const insideOption = document.createElement('option');
-//     insideOption.value = 'Inside';
-//     insideOption.text = 'Inside';
-    
-//     const outsideOption = document.createElement('option');
-//     outsideOption.value = 'Outside';  
-//     outsideOption.text = 'Outside';
-    
-//     select.append(insideOption, outsideOption);
-    
-//     cornerTypeCell.textContent = ''; 
-//     cornerTypeCell.append(select);
-    
-//     // Hide on change
-//     select.addEventListener('change', () => {
-//       cornerTypeCell.textContent = select.value;
-//       select.remove(); 
-//     });
-    
-//   });
-  
-// }); 
-
-// Create N draggable boxes
-// const N = 5; // Change N to the desired number of boxes
-// let latestBoxId = N;
-
-// const boxSize = 50; // Adjust the box size as needed
-// for (let i = 1; i <= N; i++) {
-//   const box = document.createElement('div');
-//   box.className = 'drag-box';
-//   box.id = `box${i}`;
-//   box.style.width = boxSize + 'px'; // Set the width
-//   box.style.height = boxSize + 'px'; // Set the height
-//   box.textContent = `Box ${i}`;
-//   container.appendChild(box);
-//   boxes.push(box);
-// }
+const summaryTable = new SummaryTable('summaryTable')
 
 
 function createBoxes(){
-  const boxLimit = 5;
+  const boxLimit = 1;
   const boxSize = 50; // Adjust the box size as needed
   for (let i = 1; i <= boxLimit; i++) {
     boxes.addBox(new Box(i,boxSize));
@@ -90,15 +40,14 @@ function createBoxes(){
 
 // Create the initial Boxes
 createBoxes();
+
 // Spread out the boxes evenly
-// spreadBoxes();
 boxes.spreadBoxes();
 
 // Initialize lines between the boxes
 initializeLines();
 
 grid.drawGrid();
-const summaryTable = new SummaryTable('summaryTable')
 summaryTable.initializeRows(lines.lines)
 
 
