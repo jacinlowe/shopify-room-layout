@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draggable Boxes with Lines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Roboto:wght@800&display=swap"
+    rel="stylesheet">
+</head>
+
+<body id="body">
+  <div id="rootContainer">
+    <div id="container"></div>
+    <canvas id="myCanvas" width="100%" height="100%" class="angleCanvas"></canvas>
+    <svg id="lines" width="100%" height="100%"></svg>
+    <svg id="grid" width="100%" height="100%">
+      <!-- Grid of points will be created here -->
+    </svg>
+    <svg id="polygon" width="100%" height="100%"></svg>
+
+    <!-- Existing content -->
+
+    <div class="summaryBox">
+      <table class="summaryTable">
+        <thead>
+          <th>Wall #</th>
+          <th>Wall Length</th>
+          <th>Corner Type</th>
+        </thead>
+        <tbody id="summaryTable"></tbody>
+      </table>
+      <div class="zoom-buttons">
+        <button id="zoomOut">-</button>
+        <div class="zoom-value" id="zoomValue"></div>
+        <button id="zoomIn">+</button>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- <script type="module"  src="src/polygon.js"></script> -->
+  <script type="module" src="/src/main.ts"></script>
+  <!-- <script type="module" src="./index.js"></script> -->
+</body>
+
+</html>

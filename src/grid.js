@@ -33,7 +33,7 @@ export class Slider{
 }
 
 export class Grid{
-  constructor(spacing, pointRadius=2,currentScale, svgID='grid'){
+  constructor(spacing,currentScale, pointRadius=2, svgID='grid'){
     this.spacing = spacing;
     this.pointRadius = pointRadius*2;
     this.svg = document.getElementById(svgID);
