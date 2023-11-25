@@ -1,7 +1,7 @@
 # shopify-room-layout
 
-
 ## Features
+
 - can layout a room with walls
 - calculates the wall length in feet and inches
 - can add and remove wall points
@@ -10,6 +10,7 @@
 - ctrl click and drag to unsnap the grid
 
 ## Want to add
+
 - [x] Zoom buttons & display at the bottom to keep track of reference size
 - [x] scale grid when zooming in and out to keep sizes relative - needs optimization
 - add a cancel or complete button to close the window

@@ -1,0 +1,15 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["standard-with-typescript","prettier"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@stylistic/js"],
+  "rules": {
+    "@stylistic/js/func-call-spacing": "never"
+  }
+}
