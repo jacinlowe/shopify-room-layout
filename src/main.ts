@@ -1,9 +1,11 @@
+
 import '../style.scss'
 import { Grid,Slider } from './grid.ts';
 import { Line, Lines, calculateArcAngles } from './lines.ts';
 import { shadePolygon } from './polygon.ts'
 import { SummaryTable } from './summaryBox.ts';
 import { Boxes,Box } from './boxes.ts';
+import { EventHandler, Mediator, clickHandler,loggerHandler, mouseEnterHandler, mouseLeaveHandler, transformerHandler } from './mediator.ts';
 
 const container = document.getElementById('container') as HTMLDivElement;
 const rootContainer = document.getElementById('rootContainer')as HTMLDivElement;
@@ -17,11 +19,103 @@ const MAX_SCALE = 3.0;
 const SCALE_INCREMENT = 0.1;
 
 let currentScale = 1.0;
-let selectedBox = null;
-//@ts-ignore
-let offsetX
-//@ts-ignore
-let offsetY
+
+
+const mouseMoveHandler:EventHandler = (data)=>{
+  switch(false){
+    case data.boxes && data.grid && data.e:
+     throw new Error('no data')
+    default:
+      boxes.moveBox(data.grid, data.e)
+      
+      redrawLines()
+  }
+}
+
+const mouseUpHandler:EventHandler = (data) =>{
+  if (!data.boxes) throw new Error('boxes not found in data transfer')
+  if (!data.e.target) return;
+  const selectedBox = data.boxes.selectedBox;
+  const boxes = data.boxes;
+  if (selectedBox) {
+    selectedBox.getElement().style.cursor = 'grab';
+    boxes.unselectBox();
+    selectedBox.hoverInfo.setHoverInfoEvents();
+    }
+}
+
+const resizeHandler:EventHandler = (data) => {
+  if(!data.document) throw new ReferenceError("Data doesn't have documentElement")
+  const document = data.document
+  console.log(document.documentElement.clientWidth, document.documentElement.clientHeight);
+  console.log('window resized')
+}
+
+const mouseDownHandler:EventHandler = (data) =>{
+  // console.log('container mouse down')
+  switch(false){
+    case data.e:
+      throw new ReferenceError('Data doesnt have Mouse Event')
+    case data.boxes:
+      throw new ReferenceError('Data doesnt have Boxes object')
+    default:
+      const e:MouseEvent = data.e
+      const boxes:Boxes = data.boxes
+      if (!e.target) return;
+      
+      if ((e.target as HTMLDivElement).classList.contains('drag-box')){
+        const boxId = (e.target as HTMLDivElement).getAttribute('id')
+        if (!boxId) throw new Error('Cannot get Box Id')
+        const box = boxes.getBox(parseInt(boxId))
+          boxes.selectBox(box);
+          const boxRect = box.getElement().getBoundingClientRect();
+          // offsetX = e.clientX - boxRect.left;
+          // offsetY = e.clientY - boxRect.top;
+          box.getElement().style.cursor = 'grabbing';
+          // handleLongP/ress(e.target)
+      }
+  }
+}
+
+const wheelHandler:EventHandler = (data)=>{
+  if (!data.e) throw new Error('Data does not have a wheel event')
+  const e = data.e
+  handleZoom(e)
+}
+
+const lineClickHandler:EventHandler = (data) => {
+  switch(false){
+    case data.e:
+      throw new ReferenceError('Data does not have Mouse click event');
+    case data.boxList:
+      throw new ReferenceError('Data does not have Boxes.Boxes');
+    case data.line:
+      throw new ReferenceError('Data does not have Line instance');
+    default:
+      const e = data.e
+      const boxes = data.boxes
+      const line:Line = data.line
+      const lineIndex = line.index
+      console.log(`line Index: ${lineIndex}`);
+
+      const lineMidPoint = calculateLineMidpoint(line);
+    
+      boxes.addBoxBetweenBoxes(lineIndex, handleDeleteBox, lineMidPoint);
+      redrawLines();
+      summaryTable.refreshRows(lines.lines)
+  }
+}
+
+const mediator = new Mediator();
+
+mediator.registerHandler('mousemove', mouseMoveHandler)
+mediator.registerHandler('mouseup', mouseUpHandler)
+// mediator.registerHandler('mouseup', loggerHandler)
+mediator.registerHandler('resize', resizeHandler)
+mediator.registerHandler('mousedown', mouseDownHandler )
+mediator.registerHandler('wheel', wheelHandler)
+mediator.registerHandler('line_click',lineClickHandler)
+
 
 const boxes = new Boxes(container);
 let lines = new Lines(svg);
@@ -31,7 +125,7 @@ const summaryTable = new SummaryTable('summaryTable')
 
 
 function createBoxes(){
-  const boxLimit = 1;
+  const boxLimit = 5;
   const boxSize = 50; // Adjust the box size as needed
   for (let i = 1; i <= boxLimit; i++) {
     boxes.addBox(new Box(i,boxSize));
@@ -60,70 +154,22 @@ boxes.boxes.forEach(box => {
 // MOVE SELECTED BOX
 //Document event listeners
 document.addEventListener('mousemove', (e) => {
-
   if (!boxes.selectedBox) return 
   if (!boxes.boxOffset) return;
-    moveBox(boxes,grid,e)
-    // Redraw lines
-    redrawLines();
-    
+  mediator.notify('mousemove', {boxes,grid,e})    
 });
 
-/**
- * 
- * @param {Boxes} boxes 
- * @param {Grid} grid 
- * @param {MouseEvent} e 
- * @returns 
- */
-function moveBox(boxes:Boxes, grid:Grid, e:MouseEvent) {
-  if (!boxes.selectedBox) throw new Error('No selected box');
-  if (!boxes.boxOffset) throw new Error('No box offset');
-
-  const selectedBox = boxes.selectedBox.getElement();
-  const { offsetX, offsetY } = boxes.boxOffset;
-  const x = e.clientX - offsetX;
-  const y = e.clientY - offsetY;
-  
-  selectedBox.style.left = x + 'px';
-  selectedBox.style.top = y + 'px';
-  if(!e.ctrlKey){
-    grid.snapToGrid(selectedBox)
-  }
-
-}
-
-document.addEventListener('mouseup', () => {
-  const selectedBox = boxes.selectedBox;
-  if (selectedBox) {
-    selectedBox.getElement().style.cursor = 'grab';
-    boxes.unselectBox();
-    selectedBox.hoverInfo.setHoverInfoEvents();
-    }
-});
-
-
-document.addEventListener('resize',handleWindowResize)
-
-
+document.addEventListener('mouseup', (e) => mediator.notify('mouseup',{boxes,e}));
+document.addEventListener('resize',() => mediator.notify('resize',{document}))
 container.addEventListener('mousedown', (e)=>{
-    console.log('container mouse down')
-    if (!e.target) return;
-    
-    if ((e.target as HTMLDivElement).classList.contains('drag-box')){
-        selectedBox = e.target as HTMLDivElement;
-        const boxRect = selectedBox.getBoundingClientRect();
-        offsetX = e.clientX - boxRect.left;
-        offsetY = e.clientY - boxRect.top;
-        selectedBox.style.cursor = 'grabbing';
-        // handleLongP/ress(e.target)
-    }
+  mediator.notify('mousedown',{boxes, e})  
 })
-// rootContainer.addEventListener('wheel',() => console.log('scrolling'))
 
 rootContainer.addEventListener('wheel', (e) =>  handleZoom(e));
 scaleSlider.zoomInCallback(zoomIn)
 scaleSlider.zoomOutCallback(zoomOut)
+
+
 
 //TODO: NEED TO COLLAPSE THIS INTO A SIMPLER IMPLEMENTATION
 function zoomOut(event:MouseEvent){
@@ -184,16 +230,8 @@ function handleZoom(event:WheelEvent){
     scaleSlider.updateScale(currentScale)
 }
 
-function handleWindowResize(){
-  
-  console.log(document.documentElement.clientWidth, document.documentElement.clientHeight);
-  console.log('window resized')
-}
 
-
-
-
-export function drawLines() {
+function drawLines() {
   lines.clearLines();
   const boxList = boxes.boxes;
   boxList.forEach((box, index, array) => {
@@ -212,18 +250,7 @@ export function drawLines() {
   lines.lines.forEach((line) => {
     if (!line.line) return;
     line.line.addEventListener("click", (e: MouseEvent) => {
-      const lineIndex = parseInt(
-        (e.currentTarget as HTMLElement).getAttribute("data-index")!
-      );
-
-      console.log(`line Index: ${lineIndex}`);
-      const startBox = boxList[lineIndex];
-      const endBoxIndex = (lineIndex + 1) % boxList.length;
-      const endBox = boxList[endBoxIndex]; // Wrap around for the last box
-
-      const lineMidPoint = calculateLineMidpoint(line);
-
-      addBoxBetweenBoxes(startBox, endBox, lineMidPoint);
+      mediator.notify('line_click',{boxes, e, line})
     });
   });
 
@@ -231,11 +258,7 @@ export function drawLines() {
   shadePolygon(lines.lines, POLYGON_FILL_COLOR);
 }
 
-/**
- * 
- * @param {Line} line 
- * @returns {{x:Number,y:Number}}
- */
+
 function calculateLineMidpoint(line:Line) {
   const x = (line.x1 + line.x2) / 2
   const y = (line.y1 + line.y2) / 2
@@ -243,10 +266,6 @@ function calculateLineMidpoint(line:Line) {
 }
 
 
-/**
- * 
- * @param {[Line]} lines 
- */
 function drawAngles(lines:Line[]){
   const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
   
@@ -342,55 +361,6 @@ function redrawLines() {
 
 }
 
-// // Spread out the boxes evenly
-// function spreadBoxes() {
-//     const centerX = container.offsetWidth / 2;
-//     const centerY = container.offsetHeight / 2;
-//     const angleIncrement = (2 * Math.PI) / N;
-
-//     for (let i = 0; i < N; i++) {
-//     const angle = i * angleIncrement;
-//     const x = centerX + (container.offsetWidth / 4) * Math.cos(angle) - boxSize / 2;
-//     const y = centerY + (container.offsetHeight / 4) * Math.sin(angle) - boxSize / 2;
-
-//     boxes[i].style.left = x + 'px';
-//     boxes[i].style.top = y + 'px';
-//     }
-// }
-
-
-// TODO:REPLACE THIS WITH A BOX METHOD TO UPDATE THE POSITIONING
-  // Function to add a box between two existing boxes connected by a line
-function addBoxBetweenBoxes(startBox:Box, endBox:Box,lineMidPoint:{x:number,y:number}|null=null) {
-    let x:number 
-    let y:number
-    if (!lineMidPoint) {
-      const box1Rect = startBox.getElement().getBoundingClientRect();
-      const box2Rect = endBox.getElement().getBoundingClientRect();
-    
-      x = (box1Rect.left + box2Rect.left) / 2;
-      y = (box1Rect.top + box2Rect.top) / 2;
-        
-    }else ({x, y} = lineMidPoint );
-  
-  
-    const endIndex = boxes.boxes.indexOf(endBox);
-    if (endIndex === -1){
-        console.error("End box not found in boxes array.");
-        return
-    }
-  
-    const newBox = new Box(endIndex-1);
-    newBox.positionBox(x,y);
-    newBox.hoverInfo.addCallback('click','deleteBtn',() => handleDeleteBox(newBox));
-
-    boxes.addBoxAtIndex(newBox,endIndex)
-
-    // Redraw lines to include the new box
-    redrawLines();
-    summaryTable.refreshRows(lines.lines)
-    
-  }
 
 
 // Function to calculate the length of a line segment
@@ -409,7 +379,7 @@ function calculateLineLength(x1: number, y1: number, x2: number, y2: number) {
   }
 
 
-  function handleDeleteBox(box: Box){
+function handleDeleteBox(box: Box){
     if (boxes.boxes.length <= 3) {
       console.log("Cannot delete box. Must have at least 3 boxes.");
       return

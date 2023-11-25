@@ -1,3 +1,4 @@
+import { Grid } from "./grid";
 
 export class Boxes{
     container: any;
@@ -48,6 +49,56 @@ export class Boxes{
         });
 
     }
+    moveBox(grid:Grid, e:MouseEvent) {
+        if (!this.selectedBox) throw new Error('No selected box');
+        if (!this.boxOffset) throw new Error('No box offset');
+      
+        const selectedBoxElem = this.selectedBox.getElement();
+        const { offsetX, offsetY } = this.boxOffset;
+        const x = e.clientX - offsetX;
+        const y = e.clientY - offsetY;
+        
+        selectedBoxElem.style.left = x + 'px';
+        selectedBoxElem.style.top = y + 'px';
+        if(!e.ctrlKey){
+          grid.snapToGrid(selectedBoxElem)
+        }
+      
+      }
+    addBoxBetweenBoxes(lineIndex:number, delBoxFn:CallableFunction, lineMidPoint:{x:number,y:number}|null=null) {
+        const startBox = this.boxes[lineIndex];
+        const endBoxIndex = (lineIndex + 1) % this.boxes.length;
+        const endBox = this.boxes[endBoxIndex]; // Wrap around for the last box
+        
+        let x:number 
+        let y:number
+        
+        if (!lineMidPoint) {
+          const box1Rect = startBox.getElement().getBoundingClientRect();
+          const box2Rect = endBox.getElement().getBoundingClientRect();
+        
+          x = (box1Rect.left + box2Rect.left) / 2;
+          y = (box1Rect.top + box2Rect.top) / 2;
+            
+        }else ({x, y} = lineMidPoint );
+      
+      
+        const endIndex = this.boxes.indexOf(endBox);
+        if (endIndex === -1){
+            console.error("End box not found in boxes array.");
+            return
+        }
+      
+        const newBox = new Box(endIndex-1);
+        newBox.positionBox(x,y);
+        newBox.hoverInfo.addCallback('click','deleteBtn',() => delBoxFn(newBox));
+    
+        this.addBoxAtIndex(newBox,endIndex)
+    
+        // Redraw lines to include the new box
+    
+        
+      }
 
     // moveBox() {
     //     document.addEventListener('mousemove', (e) => {
@@ -58,7 +109,10 @@ export class Boxes{
 
     // }
 
-    
+    getBox(id:number){
+        if (!this.boxes[id]) throw new Error('Cannot find box in boxes')
+        return this.boxes[id]
+    }
     selectBox(box: Box) {
         if (this.selectedBox === box) return;
         this.selectedBox = box;
