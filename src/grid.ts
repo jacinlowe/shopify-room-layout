@@ -47,6 +47,7 @@ export class Grid {
   numCols: number;
   scale: number;
   currentScale: number;
+  gridelem: HTMLElement | null;
   constructor(
     spacing: number,
     currentScale: number,
@@ -62,6 +63,7 @@ export class Grid {
     this.numCols = Math.floor(this.screenWidth / this.spacing);
     this.scale = this.spacing;
     this.currentScale = currentScale;
+    this.gridelem = document.getElementById('body')
   }
 
   drawGrid(spacing: number | null = null) {
@@ -70,23 +72,49 @@ export class Grid {
     if (spacing) {
       gridSpacing = spacing;
     }
-    for (let row = 0; row < this.numRows; row++) {
-      for (let col = 0; col < this.numCols; col++) {
-        const point = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "circle",
-        );
-        point.setAttribute("cx", (col * gridSpacing).toString());
-        point.setAttribute("cy", (row * gridSpacing).toString());
+    const pointSize = this.pointRadius
+    const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+    pattern.setAttribute("id", "grid-pattern");
+    pattern.setAttribute("width", (pointSize*2).toString());
+    pattern.setAttribute("height", (pointSize*2).toString());
+    pattern.setAttribute("patternUnits", "userSpaceOnUse");
+    pattern.setAttribute("x", "0");
+    pattern.setAttribute("y", "0");
+    // pattern.setAttribute("patternTransform", `scale(${gridSpacing})`);
+    // pattern.setAttribute("viewBox", `0 0 ${gridSpacing} ${gridSpacing}`);
 
-        point.setAttribute("fill", "black"); // Adjust the fill color as needed
-        point.setAttribute("class", "grid-dot"); // Adjust the fill color as needed
-        point.setAttribute("r", (this.pointRadius / 2).toString());
-        point.setAttribute("id", (row + col).toString());
+    const point = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    point.setAttribute("r", pointSize.toString());
+    point.setAttribute("fill", "black"); // Adjust the fill color as needed
+    point.setAttribute("class", "grid-dot"); // Adjust the fill color as needed
+    pattern.appendChild(point);
+    this.svg.appendChild(pattern);
 
-        this.svg.appendChild(point);
-      }
-    }
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("width", "100%");
+    rect.setAttribute("height", "100%");
+    rect.setAttribute("x", "0");
+    rect.setAttribute("y", "0");
+    rect.setAttribute("fill", "url(#grid-pattern)");
+    this.svg.appendChild(rect);
+
+    // for (let row = 0; row < this.numRows; row++) {
+    //   for (let col = 0; col < this.numCols; col++) {
+    //     const point = document.createElementNS(
+    //       "http://www.w3.org/2000/svg",
+    //       "circle",
+    //     );
+    //     point.setAttribute("cx", (col * gridSpacing).toString());
+    //     point.setAttribute("cy", (row * gridSpacing).toString());
+
+    //     point.setAttribute("fill", "black"); // Adjust the fill color as needed
+    //     point.setAttribute("class", "grid-dot"); // Adjust the fill color as needed
+    //     point.setAttribute("r", (this.pointRadius / 2).toString());
+    //     point.setAttribute("id", (row + col).toString());
+
+    //     this.svg.appendChild(point);
+    //   }
+    // }
   }
 
   scaleGrid(currentScale: number) {
@@ -98,6 +126,10 @@ export class Grid {
     const scaledGridSpacing = this.spacing * currentScale;
     this.scale = scaledGridSpacing;
     console.log("scalegrid", scaledGridSpacing);
+    console.log("current Scale", currentScale.toFixed(2));
+
+    this.gridelem?.style.setProperty('background-size', `100% ${currentScale}rem, ${currentScale}rem 100%` )
+    
 
     // Update the size and spacing of the grid dots
     this.updateRowAndColumns(scaledGridSpacing);
