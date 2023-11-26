@@ -72,21 +72,24 @@ export class Grid {
     if (spacing) {
       gridSpacing = spacing;
     }
-    const pointSize = this.pointRadius
+    const pointSize = this.pointRadius/2
     const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
     pattern.setAttribute("id", "grid-pattern");
-    pattern.setAttribute("width", (pointSize*2).toString());
-    pattern.setAttribute("height", (pointSize*2).toString());
+    pattern.setAttribute("width", (pointSize*20).toString());
+    pattern.setAttribute("height", (pointSize*20).toString());
     pattern.setAttribute("patternUnits", "userSpaceOnUse");
     pattern.setAttribute("x", "0");
     pattern.setAttribute("y", "0");
-    // pattern.setAttribute("patternTransform", `scale(${gridSpacing})`);
+    pattern.setAttribute("patternTransform", `scale(${gridSpacing/20})`);
     // pattern.setAttribute("viewBox", `0 0 ${gridSpacing} ${gridSpacing}`);
 
     const point = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     point.setAttribute("r", pointSize.toString());
     point.setAttribute("fill", "black"); // Adjust the fill color as needed
     point.setAttribute("class", "grid-dot"); // Adjust the fill color as needed
+    point.setAttribute("cx", pointSize.toString());
+    point.setAttribute("cy", pointSize.toString());
+    
     pattern.appendChild(point);
     this.svg.appendChild(pattern);
 
