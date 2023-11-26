@@ -1,0 +1,1 @@
+import { Mediator } from '../src/mediator';

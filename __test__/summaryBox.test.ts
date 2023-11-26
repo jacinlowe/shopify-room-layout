@@ -1,0 +1,1 @@
+import { SummaryTable } from '../src/summaryBox';

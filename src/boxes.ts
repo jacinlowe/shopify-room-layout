@@ -1,11 +1,11 @@
 import { Grid } from "./grid";
 
 export class Boxes {
-  container: any;
+  container: HTMLDivElement;
   boxes: Box[];
   selectedBox: Box | null;
   boxOffset: { offsetX: number; offsetY: number } | null;
-  constructor(container: any) {
+  constructor(container: HTMLDivElement) {
     this.container = container;
     this.boxes = [];
     this.selectedBox = null;
@@ -96,15 +96,6 @@ export class Boxes {
 
     // Redraw lines to include the new box
   }
-
-  // moveBox() {
-  //     document.addEventListener('mousemove', (e) => {
-  //        if (!this.selectedBox) return
-  //         // console.log(e)
-
-  //     })
-
-  // }
 
   getBox(id: number) {
     if (!this.boxes[id]) throw new Error("Cannot find box in boxes");

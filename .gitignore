@@ -2,8 +2,8 @@ build/*
 build
 .vscode
 node_modules
-package*.json
-tsconfig.json
+# package-lock.json
+# tsconfig.json
 nodemon.json
 
 # Logs
