@@ -5,6 +5,7 @@ import { shadePolygon } from "./polygon.ts";
 import { SummaryTable } from "./summaryBox.ts";
 import { Boxes, Box } from "./boxes.ts";
 import { EventHandler, Mediator } from "./mediator.ts";
+import { LayoutManager,StateType } from "./statemanager.ts";
 
 const container = document.getElementById("container") as HTMLDivElement;
 const rootContainer = document.getElementById(
@@ -20,11 +21,44 @@ const MAX_SCALE = 3.0;
 const SCALE_INCREMENT = 0.1;
 
 let currentScale = 1.0;
-const boxes = new Boxes(container);
-let lines = new Lines(svg);
-const grid = new Grid(GRID_SPACING, currentScale);
-const zoom = new Zoom(grid.currentScale ?? 1);
-const summaryTable = new SummaryTable("summaryTable");
+
+
+let boxes:Boxes;
+let lines:Lines;
+let grid:Grid;
+let zoom:Zoom;
+let summaryTable:SummaryTable;
+
+
+const initialState:StateType = {
+
+}
+
+const layoutManager = new LayoutManager(initialState)
+const loadedState = layoutManager.loadLayout();
+
+if (loadedState){
+  boxes = loadedState.boxes
+  lines = loadedState.lines;
+  grid = loadedState.grid;
+  zoom = loadedState.Zoom
+  summaryTable = loadedState.summaryTable;
+  
+} else{
+
+  boxes = new Boxes(container);
+  lines = new Lines(svg);
+  grid = new Grid(GRID_SPACING, currentScale);
+  zoom = new Zoom(grid.currentScale ?? 1);
+  summaryTable = new SummaryTable("summaryTable");
+  initializeState();
+  
+}
+
+
+const stateHandler: EventHandler = () =>{
+  layoutManager.onUpdateLayout({ boxes, lines, grid, zoom, summaryTable })
+}
 
 const mouseMoveHandler: EventHandler = (data) => {
   switch (false) {
@@ -116,7 +150,7 @@ const lineClickHandler: EventHandler = (data) => {
 };
 
 const mediator = new Mediator();
-
+// mediator.registerStateHandler(stateHandler);
 mediator.registerHandler("mousemove", mouseMoveHandler);
 mediator.registerHandler("mouseup", mouseUpHandler);
 // mediator.registerHandler('mouseup', loggerHandler)
@@ -133,17 +167,21 @@ function createBoxes() {
   }
 }
 
-// Create the initial Boxes
-createBoxes();
-
-// Spread out the boxes evenly
-boxes.spreadBoxes();
-
-// Initialize lines between the boxes
-initializeLines();
-
-grid.drawGrid();
-summaryTable.initializeRows(lines.lines);
+function initializeState(){
+  // Create the initial Boxes
+  createBoxes();
+  
+  // Spread out the boxes evenly
+  boxes.spreadBoxes();
+  
+  // Initialize lines between the boxes
+  initializeLines();
+  
+  grid.drawGrid();
+  summaryTable.initializeRows(lines.lines);
+  
+  layoutManager.onUpdateLayout({ boxes, lines, grid, zoom, summaryTable })
+}
 
 // Box Event Listeners
 boxes.boxes.forEach((box) => {

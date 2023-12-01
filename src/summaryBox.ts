@@ -93,6 +93,9 @@ export class SummaryTable {
 }
 
 class SummaryRow {
+  wallNum: string;
+  length: string;
+  cornerType: cornerType;
   wallNumCell: HTMLTableCellElement;
   lengthCell: HTMLTableCellElement;
   cornerTypeCell: HTMLTableCellElement;
@@ -104,13 +107,17 @@ class SummaryRow {
    * @param {CornerEnum} cornerType
    */
   constructor(wallNum: string, length: string, cornerType: cornerType) {
+    this.wallNum = wallNum;
+    this.length = length;
+    this.cornerType = cornerType;
+    
     this.element = document.createElement("tr");
     this.wallNumCell = document.createElement("td");
-    this.wallNumCell.textContent = wallNum;
+    this.wallNumCell.textContent = this.wallNum;
     this.lengthCell = document.createElement("td");
-    this.lengthCell.textContent = length;
+    this.lengthCell.textContent = this.length;
     this.cornerTypeCell = document.createElement("td");
-    this.cornerTypeCell.textContent = cornerType;
+    this.cornerTypeCell.textContent = this.cornerType;
     this.element.appendChild(this.wallNumCell);
     this.element.appendChild(this.lengthCell);
     this.element.appendChild(this.cornerTypeCell);

@@ -7,7 +7,26 @@ export class Mediator {
   constructor() {
     this.handlers = {}
   }
-  
+  /**
+   * Can only be one state handler if there are more that one registered only the last one will be retained
+   * @param handler 
+   * @returns void
+   */
+  registerStateHandler(handler:EventHandler): void{
+    this.registerHandler('state', handler);
+    let stateHandlers = this.handlers['state']
+
+    // only use the last handler if there are more than one
+    if(stateHandlers.length >= 1){
+      const lastHandler = stateHandlers.pop();
+      if(!lastHandler){
+        return;
+      }
+      stateHandlers = []
+      stateHandlers.push(lastHandler);
+      this.handlers['state'] = stateHandlers;
+    } 
+  }
   registerHandler(event: string, handler: EventHandler): void {
     if (!this.handlers[event]) {
       this.handlers[event] = [];
@@ -25,13 +44,24 @@ export class Mediator {
         //update the current data with the result for the next handler
         currentData = result ?? currentData;
       });
+
+      // update the save state
+      if (this.handlers['state']){
+        const stateHandler = this.handlers['state'][0]
+        if (stateHandler){
+          stateHandler(currentData);
+        }
+      }
     }
     return currentData;
   }
 }
 
-export type EventHandler<R = any> = (data: any) => R | void;
-
+export type EventHandler<R = any> = (data: any | never) => R | void;
+/**
+ * 
+ * @param data 
+ */
 export const loggerHandler: EventHandler = (data: any): void => {
   console.log("Logging: ", data);
 };

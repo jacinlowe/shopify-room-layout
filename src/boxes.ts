@@ -31,7 +31,7 @@ export class Boxes {
    * @param {HTMLElement} boxElem
    *  */
   grabBox(box: Box) {
-    console.log("selected box: ", box.id);
+    // console.log("selected box: ", box.id);
     const boxElem = box.getElement();
     boxElem.addEventListener("mousedown", (e) => {
       this.selectBox(box);
@@ -166,7 +166,7 @@ export class Box {
     this.element.style.height = size + "px"; // Set the height
     this.text.textContent = `Box ${id}`;
 
-    this.hoverInfo = new HoverInfo(this).createHoverInfo();
+    this.hoverInfo = new HoverInfo().createHoverInfo();
     this.element.appendChild(this.text);
     this.element.appendChild(this.hoverInfo.getHoverInfo());
     // this.pointGroup.appendChild(this.element)
@@ -219,12 +219,19 @@ export function getBoxCenter(box: Box) {
 type GenericObject<T> = { [key: string]: T };
 
 class HoverInfo {
-  box: any;
+  // box: any;
   elements: GenericObject<HTMLDivElement>;
   hoverInfo: any;
-  constructor(box: Box) {
-    this.box = box;
+  constructor() {
+    // this.box = box;
     this.elements = {} as GenericObject<HTMLDivElement>;
+  }
+  toJSON(){
+    return {
+      elements: this.elements,
+      hoverInfo: this.hoverInfo,
+      addCallback: this.addCallback,
+    }
   }
 
   getHoverInfo() {
