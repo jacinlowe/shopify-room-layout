@@ -341,7 +341,22 @@ body {
   color: #2c3e50;
   font-family: "Segoe UI";
 }
+.buttons{
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  justify-content: center;
 
+  // margin: 10px;
+  z-index: 10;
+  .button{
+    padding: 20px;
+    margin: 10px;
+  }
+  #reset{
+    background: rgb(227, 1, 1)
+  }
+}
 .button {
   align-items: center;
   background: #ffffff;

@@ -12,6 +12,13 @@ const rootContainer = document.getElementById(
   "rootContainer",
 ) as HTMLDivElement;
 const svg = document.getElementById("lines") as HTMLElement;
+const reset = document.getElementById('reset') as HTMLButtonElement;
+const save = document.getElementById('save') as HTMLButtonElement;
+const cancel = document.getElementById('cancel') as HTMLButtonElement;
+
+
+
+
 
 const GRID_SPACING = 20;
 const POLYGON_FILL_COLOR = "blue"; // Replace with the desired fill color
@@ -149,6 +156,10 @@ const lineClickHandler: EventHandler = (data) => {
   }
 };
 
+const saveHandler: EventHandler = (data) => {}
+const resetHandler: EventHandler = (data) => {}
+const cancelHandler: EventHandler = (data) => {}
+
 const mediator = new Mediator();
 // mediator.registerStateHandler(stateHandler);
 mediator.registerHandler("mousemove", mouseMoveHandler);
@@ -158,6 +169,9 @@ mediator.registerHandler("resize", resizeHandler);
 mediator.registerHandler("mousedown", mouseDownHandler);
 mediator.registerHandler("wheel", wheelHandler);
 mediator.registerHandler("line_click", lineClickHandler);
+mediator.registerHandler("save", saveHandler);
+mediator.registerHandler("reset", resetHandler);
+mediator.registerHandler("cancel", cancelHandler);
 
 function createBoxes() {
   const boxLimit = 5;
@@ -180,7 +194,7 @@ function initializeState(){
   grid.drawGrid();
   summaryTable.initializeRows(lines.lines);
   
-  layoutManager.onUpdateLayout({ boxes, lines, grid, zoom, summaryTable })
+  // layoutManager.onUpdateLayout({ boxes, lines, grid, zoom, summaryTable })
 }
 
 // Box Event Listeners
@@ -209,6 +223,12 @@ container.addEventListener("mousedown", (e) => {
 rootContainer.addEventListener("wheel", (e) => handleZoom(e));
 zoom.zoomInCallback(zoomIn);
 zoom.zoomOutCallback(zoomOut);
+
+cancel?.addEventListener('click',(e) => mediator.notify('cancel',null));
+reset?.addEventListener('click',(e) => mediator.notify('reset',null));
+save?.addEventListener('click',(e) => mediator.notify('save',null));
+
+
 
 //TODO: NEED TO COLLAPSE THIS INTO A SIMPLER IMPLEMENTATION
 function zoomOut(event: MouseEvent) {
