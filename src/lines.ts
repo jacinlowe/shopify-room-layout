@@ -1,4 +1,5 @@
 import { Box } from "./boxes";
+import { configService as config } from "./config";
 
 export class Lines {
   svg: any;
@@ -10,7 +11,9 @@ export class Lines {
   addLine(line: Line) {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.appendChild(line.line as SVGElement);
-    group.appendChild(line.text as SVGElement);
+    if (config.getFeatureFlag('showLineText')){
+      group.appendChild(line.text as SVGElement);
+    }
     this.svg.appendChild(group);
     this.lines.push(line);
   }
@@ -134,7 +137,7 @@ export class Line {
     text.setAttribute("dominant-baseline", "middle");
     text.setAttribute("class", "line-text");
     text.setAttribute("index", (this.index - 1).toString());
-    text.textContent = this.getLineText(scale);
+    text.textContent = this.getLineLengthText(scale);
     group.appendChild(text);
 
     // added wall num
@@ -154,7 +157,7 @@ export class Line {
     return this;
   }
 
-  getLineText(scale = 10) {
+  getLineLengthText(scale = 10) {
     this.length = calculateLineLength(this.x1, this.y1, this.x2, this.y2);
 
     // Convert length from pixels to feet and inches (adjust the conversion factor as needed)

@@ -1,3 +1,4 @@
+
 import "../style.scss";
 import { Grid, Zoom } from "./grid.ts";
 import { Line, Lines, calculateArcAngles } from "./lines.ts";
@@ -6,6 +7,7 @@ import { SummaryTable } from "./summaryBox.ts";
 import { Boxes, Box } from "./boxes.ts";
 import { EventHandler, Mediator } from "./mediator.ts";
 import { LayoutManager,StateType } from "./statemanager.ts";
+import {  configService as config, TFeatureFlags } from "./config"
 
 const container = document.getElementById("container") as HTMLDivElement;
 const rootContainer = document.getElementById(
@@ -57,7 +59,9 @@ if (loadedState){
   lines = new Lines(svg);
   grid = new Grid(GRID_SPACING, currentScale);
   zoom = new Zoom(grid.currentScale ?? 1);
-  summaryTable = new SummaryTable("summaryTable");
+  if(config.getFeatureFlag("showSummaryWindow")){
+    summaryTable = new SummaryTable("summaryTable");
+  }
   initializeState();
   
 }
@@ -152,7 +156,9 @@ const lineClickHandler: EventHandler = (data) => {
 
       boxes.addBoxBetweenBoxes(lineIndex, handleDeleteBox, lineMidPoint);
       redrawLines();
+      if(config.getFeatureFlag('showSummaryWindow')){
       summaryTable.refreshRows(lines.lines);
+      }
   }
 };
 
@@ -192,7 +198,9 @@ function initializeState(){
   initializeLines();
   
   grid.drawGrid();
-  summaryTable.initializeRows(lines.lines);
+  if(config.getFeatureFlag('showSummaryWindow')){
+    summaryTable.initializeRows(lines.lines);
+  }
   
   // layoutManager.onUpdateLayout({ boxes, lines, grid, zoom, summaryTable })
 }
@@ -227,7 +235,7 @@ zoom.zoomOutCallback(zoomOut);
 cancel?.addEventListener('click',(e) => mediator.notify('cancel',null));
 reset?.addEventListener('click',(e) => mediator.notify('reset',null));
 save?.addEventListener('click',(e) => mediator.notify('save',null));
-
+// FIXME:
 
 
 //TODO: NEED TO COLLAPSE THIS INTO A SIMPLER IMPLEMENTATION
@@ -309,8 +317,13 @@ function drawLines() {
     });
   });
 
-  drawAngles(lines.lines);
-  shadePolygon(lines.lines, POLYGON_FILL_COLOR);
+  if (config.getFeatureFlag('drawArcs')){
+    drawAngles(lines.lines);
+
+  }
+  if (config.getFeatureFlag('drawPolygon')){
+    shadePolygon(lines.lines, POLYGON_FILL_COLOR);
+  }
 }
 
 // Initialize lines between the boxes
@@ -322,7 +335,10 @@ function initializeLines() {
 function redrawLines() {
   svg.innerHTML = "";
   drawLines();
-  summaryTable.refreshRows(lines.lines);
+  if(config.getFeatureFlag('showSummaryWindow')){
+    summaryTable.refreshRows(lines.lines);
+
+  }
 }
 
 function calculateLineMidpoint(line: Line) {
@@ -434,6 +450,8 @@ function handleDeleteBox(box: Box) {
   boxes.removeBox(box);
   boxes.updateBoxText();
   redrawLines();
-  summaryTable.refreshRows(lines.lines);
+  if(config.getFeatureFlag('showSummaryWindow')){
+    summaryTable.refreshRows(lines.lines);
+  }
 }
 

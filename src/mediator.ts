@@ -1,3 +1,6 @@
+
+import { configService as config, TFeatureFlags } from "./config";
+
 type handlerType = {
     [key: string]: EventHandler[];
 };
@@ -37,7 +40,9 @@ export class Mediator {
     let currentData = data;
 
     if (this.handlers[event]) {
-      console.log(`[EVENT]: ${event.toString()}, Logging:`, currentData);
+      if(config.getFeatureFlag('eventLogging')){
+        console.log(`[EVENT]: ${event.toString()}, Logging:`, currentData);
+      }
       this.handlers[event].forEach((handler) => {
         //call each handler and pass the current data
         const result = handler(currentData);
