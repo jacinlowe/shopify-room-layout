@@ -1,0 +1,414 @@
+:root {
+
+}
+
+$baseHue: 190;
+
+$grid-size: 6rem;
+$backgroundColor: #5f6c96;
+$gridColor: #dfe4f6;
+$polygonColor: #4e86bdb8;
+$lineColor: rgba(234, 234, 234, 0.89);
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  /* display: flex; */
+  /* justify-content: center;
+    align-items: center; */
+  /* height: 100vh; */
+  background-color: $backgroundColor;
+  background: $backgroundColor;
+  min-height: 100vh;
+  background-image: 
+    linear-gradient(0deg, $gridColor 0%, transparent 1px), 
+    linear-gradient(90deg, $gridColor 0%, transparent 1px);
+  background-position: center;
+  background-size: 100% 1rem;
+  background-size: 
+    100% $grid-size, 
+    $grid-size 100%;
+  transition: background-size 0.25s;
+}
+
+#container {
+  position: absolute;
+  /* position: absolute; */
+  width: 100%;
+  height: 100%;
+  /* background-color: #4c4c4c; */
+  // border: 1px solid #ccc;
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 0.25s;
+}
+
+.drag-box {
+  width: 10px;
+  height: 10px;
+  border-radius: 10px;
+  background-color: #3498db;
+  position: absolute;
+  cursor: grab;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-weight: bold;
+  pointer-events: auto;
+}
+
+#lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  // transition: all 0.25s;
+  /* pointer-events: stroke; */
+}
+#grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+#polygon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Style for the larger clickable lines */
+.clickable-line {
+  stroke: $lineColor; /*Make the line itself transparent*/
+  fill: transparent;
+  stroke-linecap: round;
+  pointer-events: stroke;
+  stroke-width: 5px; /* Increase the stroke width to expand the clickable area */
+  cursor: pointer; /* Change cursor to pointer to indicate interactivity */
+}
+
+.line-text {
+  /* font-family: 'Open Sans', sans-serif; */
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+}
+
+.grid-dot {
+  fill: black;
+  opacity: 0.2;
+  // opacity: 1;
+  /* r:2px; radius */
+}
+
+.polygon {
+  fill: $polygonColor;
+}
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+}
+
+.hoverInfo {
+  position: absolute;
+  display: inline-grid;
+  grid-template-columns: 25px 50px 0px;
+  grid-template-rows: 25px 50px 0px;
+  grid-template-areas:
+    "topLeft top topRight"
+    "left center right"
+    "bottomLeft bottom bottomRight";
+  width: 100px;
+  height: 100px;
+
+  &:hover {
+    // border:5px dotted;
+  }
+
+  /* border: 2px dashed #0B6FA4; */
+}
+
+.delete-button {
+  cursor: pointer;
+  grid-area: topRight;
+  color: #fff !important;
+  background-color: red !important;
+}
+
+.options-button {
+  cursor: pointer;
+  grid-area: topLeft;
+  display: flex;
+  flex-direction: column;
+  /* color:#fff !important; */
+  /* background-color: red !important; */
+  span {
+    background: black;
+    border-radius: 10px;
+    border: 1px solid black;
+    height: 7px;
+    margin: 2px 0;
+    width: 14px;
+  }
+}
+
+.transition {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.summaryBox {
+  position: absolute;
+  bottom: 50px;
+  left: 50px;
+  border-radius: 25px;
+  /* border: 1px solid black;
+  border-radius: 3px; */
+  /* padding: 20px; */
+  /* margin: 60px 10px; */
+  z-index: 102;
+
+  /* width: calc(100% - 40px);
+  height: calc(100% - 40px); */
+  .summaryTable {
+    font-family: Georgia, serif;
+    border: 2px solid #5f5f5f;
+
+    background-color: #c3c3c3;
+    width: 350px;
+    height: 200px;
+    text-align: center;
+    border-collapse: collapse;
+    box-shadow: 6px 24px 66px -25px rgba(0, 0, 0, 0.35);
+    -webkit-box-shadow: 6px 24px 66px -25px rgba(0, 0, 0, 0.35);
+    -moz-box-shadow: 6px 24px 66px -25px rgba(0, 0, 0, 0.35);
+
+    th {
+      text-align: start;
+    }
+    tr {
+      text-align: center;
+    }
+    td,
+    th {
+      border: 0px solid #ffffff;
+      padding: 3px 2px;
+    }
+    td,
+    tbody {
+      font-size: 13px;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background: #8da1b2;
+    }
+    thead,
+    th {
+      background: #0b6fa4;
+      font-size: 17px;
+      font-weight: bold;
+      color: #ffffff;
+      text-align: center;
+    }
+    tfoot {
+      font-size: 14px;
+      font-weight: bold;
+      color: #333333;
+      background: #d0e4f5;
+      border-top: 3px solid #444444;
+      & td {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.angleCanvas {
+  position: absolute;
+  /* width: 100px; Set the width of the indicator */
+  /* height: 2px; Set the height of the indicator */
+  /* background-color: red; */
+  /* transform-origin: 0% 50%; */
+  z-index: 1;
+}
+
+.zoomSlider {
+  width: 100%;
+  display: flex;
+  flex: row wrap;
+  margin-top: 10px;
+  padding: 5px;
+}
+.slider {
+  appearance: none;
+  width: 90%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 1;
+  }
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 25px;
+    border-radius: 50%;
+    background: #04aa6d;
+    cursor: pointer;
+  }
+  &::moz-range-thumb {
+    width: 30px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    border-radius: 50%;
+    background: #04aa6d; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+  }
+}
+
+.zoomSliderValue {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  color: #fff;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 3px;
+  background: #2c3e50;
+  padding: 5px 10px;
+  margin-left: 8px;
+  &::after {
+    position: absolute;
+    top: 8px;
+    left: -7px;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-right: 7px solid #2c3e50;
+    border-bottom: 7px solid transparent;
+    content: "";
+  }
+}
+
+.zoom-buttons {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.3rem;
+  button {
+    width: 3rem;
+    height: 2rem;
+    border: 1px solid rgb(200, 200, 200);
+    border-radius: 5px;
+    /* margin: 0 1px ; */
+    /* margin:0; */
+    background-color: #ececec;
+  }
+}
+.zoom-value {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 3.5rem;
+  height: 2rem;
+  border: 1px solid grey;
+  border-radius: 5px;
+  margin: 0 5px;
+  background-color: #ececec;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-family: "Segoe UI";
+}
+.buttons{
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  justify-content: center;
+
+  // margin: 10px;
+  z-index: 10;
+  .button{
+    padding: 20px;
+    margin: 10px;
+    &.debug{
+      width:6rem;
+      // padding:10px;
+      font-size:0.9rem
+    }
+  }
+  #reset{
+    background: rgb(227, 1, 1)
+  }
+}
+.button {
+  align-items: center;
+  background: #ffffff;
+  border: 0 solid #e2e8f0;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  color: #1a202c;
+  display: inline-flex;
+  font-family: Inter, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  height: 14px;
+  justify-content: center;
+  line-height: 14px;
+  overflow-wrap: break-word;
+  padding: 14px;
+  text-decoration: none;
+  width: auto;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transform: scale(1);
+  transition: transform 0.1s ease-in-out;
+  &:hover {
+    transform: scale(1.3);
+    transition: transform 0.2s ease-in-out;
+    /* padding: 16px; */
+  }
+}
+
+/* Selection Highlighting */
+::-moz-selection {
+  background-color: transparent;
+  color: #000;
+}
+::selection {
+  background-color: transparent;
+  color: #000;
+}
+
+@media (max-width: 600px) {
+  .summaryBox {
+    bottom: 10px;
+    left: 10px;
+  }
+}
